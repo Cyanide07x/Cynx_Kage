@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../theme/appcolors.dart';
 
@@ -10,7 +12,21 @@ class NewArrivals extends StatefulWidget {
 
 class _NewArrivalsState extends State<NewArrivals>
     with SingleTickerProviderStateMixin {
-  bool isWishlisted = false;
+  Set<int> wishlistedProducts = {};
+
+  final PageController _pageController = PageController();
+
+  Timer? _timer;
+
+  int _currentPage = 0;
+
+  final List<String> products = [
+    'assets/images/new_arrival_1.jpg',
+    'assets/images/new_arrival_2.jpg',
+    'assets/images/new_arrival_3.jpg',
+    'assets/images/new_arrival_4.jpg',
+    'assets/images/new_arrival_5.jpg',
+  ];
 
   late AnimationController _newAnimationController;
 
@@ -22,10 +38,40 @@ class _NewArrivalsState extends State<NewArrivals>
       vsync: this,
       duration: const Duration(milliseconds: 900),
     )..repeat(reverse: true);
+
+    // Preload all product images
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (final image in products) {
+        precacheImage(
+          AssetImage(image),
+          context,
+        );
+      }
+    });
+
+    // Automatic carousel
+    _timer = Timer.periodic(
+      const Duration(seconds: 2),
+      (_) {
+        if (!_pageController.hasClients || products.isEmpty) {
+          return;
+        }
+
+        final nextPage = _currentPage + 1;
+
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      },
+    );
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
     _newAnimationController.dispose();
     super.dispose();
   }
@@ -48,7 +94,6 @@ class _NewArrivalsState extends State<NewArrivals>
                   fontWeight: FontWeight.w500,
                 ),
               ),
-
               Text(
                 'See all',
                 style: TextStyle(
@@ -69,12 +114,50 @@ class _NewArrivalsState extends State<NewArrivals>
           child: Container(
             height: 325,
             width: double.infinity,
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: AppColors.text,
               borderRadius: BorderRadius.circular(28),
             ),
             child: Stack(
               children: [
+                // Product image carousel
+                Positioned.fill(
+                  child: PageView.builder(
+                    controller: _pageController,
+
+                    // Extra page = duplicate first image
+                    // for seamless looping.
+                    itemCount: products.length + 1,
+
+                    onPageChanged: (index) {
+                      if (index == products.length) {
+                        setState(() {
+                          _currentPage = 0;
+                        });
+
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (_pageController.hasClients) {
+                            _pageController.jumpToPage(0);
+                          }
+                        });
+                      } else {
+                        setState(() {
+                          _currentPage = index;
+                        });
+                      }
+                    },
+
+                    itemBuilder: (context, index) {
+                      return Image.asset(
+                        products[index % products.length],
+                        fit: BoxFit.cover,
+                        gaplessPlayback: true,
+                      );
+                    },
+                  ),
+                ),
+
                 // NEW badge
                 Positioned(
                   top: 12,
@@ -115,16 +198,20 @@ class _NewArrivalsState extends State<NewArrivals>
                     ),
                     child: IconButton(
                       icon: Icon(
-                        isWishlisted
+                        wishlistedProducts.contains(_currentPage)
                             ? Icons.favorite
                             : Icons.favorite_border,
                       ),
-                      color: isWishlisted
+                      color: wishlistedProducts.contains(_currentPage)
                           ? Colors.red
                           : AppColors.text,
                       onPressed: () {
                         setState(() {
-                          isWishlisted = !isWishlisted;
+                          if (wishlistedProducts.contains(_currentPage)) {
+                            wishlistedProducts.remove(_currentPage);
+                          } else {
+                            wishlistedProducts.add(_currentPage);
+                          }
                         });
                       },
                     ),
@@ -140,26 +227,23 @@ class _NewArrivalsState extends State<NewArrivals>
         // Page indicators
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _dot(true),
-            _dot(false),
-            _dot(false),
-            _dot(false),
-          ],
+          children: List.generate(
+            products.length,
+            (index) => _dot(index == _currentPage),
+          ),
         ),
       ],
     );
   }
 
   Widget _dot(bool active) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
       margin: const EdgeInsets.symmetric(horizontal: 4),
-      width: 38,
-      height: 20,
+      width: active ? 28 : 8,
+      height: 8,
       decoration: BoxDecoration(
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        color: active ? AppColors.primary : AppColors.border,
         borderRadius: BorderRadius.circular(20),
       ),
     );

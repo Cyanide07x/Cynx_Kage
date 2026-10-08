@@ -60,6 +60,11 @@ flutter:
   assets:
     - assets/images/Herotag.svg
     - assets/images/searchbar.svg
+    - assets/images/new_arrival_1.jpg
+    - assets/images/new_arrival_2.jpg
+    - assets/images/new_arrival_3.jpg
+    - assets/images/new_arrival_4.jpg
+    - assets/images/new_arrival_5.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
