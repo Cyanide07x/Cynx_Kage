@@ -5,6 +5,7 @@ import '../../theme/appcolors.dart';
 import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 import '../../widgets/searchbar.dart';
+import '../../widgets/new_arrivals.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -200,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(width:15),
                               Container(
-                                width: 100,
+                                width: 110,
                                 height: 30,
                                 decoration: BoxDecoration(
                                   gradient: const LinearGradient(
@@ -226,7 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(width: 15),
                               Container(
-                                width: 100,
+                                width: 120,
                                 height: 30,
                                 decoration: BoxDecoration(
                                   gradient: const LinearGradient(
@@ -250,12 +251,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                               ),
-
                             ],
                           ),
                         ),
                       ),
                     ),
+                    const SizedBox(height: 25),
+                    const NewArrivals(),
                   ],
                 ),
               ),
