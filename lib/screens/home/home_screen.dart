@@ -6,6 +6,7 @@ import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 import '../../widgets/searchbar.dart';
 import '../../widgets/new_arrivals.dart';
+import '../../Widgets/trending.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -258,6 +259,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 25),
                     const NewArrivals(),
+
+                    const SizedBox(height:30),
+
+                    const Trending(),
                   ],
                 ),
               ),
