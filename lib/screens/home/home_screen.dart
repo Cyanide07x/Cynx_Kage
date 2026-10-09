@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -72,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  // Selected category content
+                  // Body content
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.only(top: 25),
@@ -94,6 +93,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (selectedCategory == 'Men') {
       return const MenScreen();
     }
+
+    // Women's Collection
     if (selectedCategory == 'Women') {
       return const WomenScreen();
     }
@@ -110,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Other categories — placeholders for now
+    // Other categories
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: 20,
@@ -143,11 +144,12 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
     required this.onCategorySelected,
   });
 
+  // Increased height to reserve permanent space beneath categories.
   @override
-  double get minExtent => 108;
+  double get minExtent => 123;
 
   @override
-  double get maxExtent => 108;
+  double get maxExtent => 123;
 
   @override
   Widget build(
@@ -168,6 +170,7 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
     return Container(
       color: AppColors.appBackground,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 5),
 
@@ -200,6 +203,9 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
               ),
             ),
           ),
+
+          // Permanent gap below the categories.
+          const SizedBox(height: 15),
         ],
       ),
     );
