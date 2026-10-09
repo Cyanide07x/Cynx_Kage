@@ -128,9 +128,9 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     final product = wishlistItems[index];
 
                     return TrendingProductCard(
-                      name: product['name']!,
-                      price: product['price']!,
-                    );
+  name: product['name']!,
+  price: product['price']!,
+);
                   },
                 ),
               ),
