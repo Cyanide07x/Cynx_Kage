@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -6,6 +7,8 @@ import '../../widgets/header.dart';
 import '../../widgets/searchbar.dart';
 import '../../widgets/new_arrivals.dart';
 import '../../Widgets/trending.dart';
+import 'men.dart';
+import 'women.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool showNavigation;
@@ -17,13 +20,15 @@ class HomeScreen extends StatefulWidget {
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
-  }
+}
+
 class _HomeScreenState extends State<HomeScreen> {
+  String selectedCategory = 'All';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.appBackground,
-
       body: SafeArea(
         child: Column(
           children: [
@@ -36,8 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   SliverToBoxAdapter(
                     child: Column(
                       children: [
-                        const SizedBox(height: 10),
-
+                        const SizedBox(height: 5),
                         Padding(
                           padding: const EdgeInsets.only(left: 15),
                           child: SizedBox(
@@ -50,8 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 15),
                       ],
                     ),
                   ),
@@ -59,22 +62,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Sticky Search Bar + Categories
                   SliverPersistentHeader(
                     pinned: true,
-                    delegate: _StickySearchDelegate(),
-                  ),
-
-                  // New Arrivals
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 25),
-                      child: NewArrivals(),
+                    delegate: _StickySearchDelegate(
+                      selectedCategory: selectedCategory,
+                      onCategorySelected: (category) {
+                        setState(() {
+                          selectedCategory = category;
+                        });
+                      },
                     ),
                   ),
 
-                  // Trending
-                  const SliverToBoxAdapter(
+                  // Selected category content
+                  SliverToBoxAdapter(
                     child: Padding(
-                      padding: EdgeInsets.only(top: 30),
-                      child: Trending(),
+                      padding: const EdgeInsets.only(top: 25),
+                      child: _buildCategoryBody(),
                     ),
                   ),
                 ],
@@ -83,23 +85,69 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-
       bottomNavigationBar: null,
     );
   }
-}
 
+  Widget _buildCategoryBody() {
+    // Men's Collection
+    if (selectedCategory == 'Men') {
+      return const MenScreen();
+    }
+    if (selectedCategory == 'Women') {
+      return const WomenScreen();
+    }
+
+    // Original homepage
+    if (selectedCategory == 'All') {
+      return const Column(
+        children: [
+          NewArrivals(),
+          SizedBox(height: 30),
+          Trending(),
+          SizedBox(height: 30),
+        ],
+      );
+    }
+
+    // Other categories — placeholders for now
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 40,
+      ),
+      child: Center(
+        child: Text(
+          '$selectedCategory collection coming soon',
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 18,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 // ============================================================
 // STICKY SEARCH + CATEGORY HEADER
 // ============================================================
 
 class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
-  @override
-  double get minExtent => 115;
+  final String selectedCategory;
+  final ValueChanged<String> onCategorySelected;
+
+  _StickySearchDelegate({
+    required this.selectedCategory,
+    required this.onCategorySelected,
+  });
 
   @override
-  double get maxExtent => 115;
+  double get minExtent => 108;
+
+  @override
+  double get maxExtent => 108;
 
   @override
   Widget build(
@@ -107,6 +155,16 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
+    const categories = [
+      'All',
+      'Men',
+      'Women',
+      'Kids',
+      'Unisex',
+      'Streetwear',
+      'Accessories',
+    ];
+
     return Container(
       color: AppColors.appBackground,
       child: Column(
@@ -121,9 +179,9 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
             ),
           ),
 
-          const SizedBox(height: 15),
+          const SizedBox(height: 20),
 
-          // Category Buttons
+          // Selectable Category Buttons
           SizedBox(
             height: 30,
             child: Align(
@@ -133,206 +191,10 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
                 padding: const EdgeInsets.only(left: 15),
                 child: Row(
                   children: [
-                    // All
-                    Container(
-                      width: 60,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            AppColors.border,
-                            AppColors.deepForest,
-                          ],
-                        ),
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'All',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 15),
-
-                    // Men
-                    Container(
-                      width: 60,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            AppColors.border,
-                            AppColors.deepForest,
-                          ],
-                        ),
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Men',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 15),
-
-                    // Women
-                    Container(
-                      width: 80,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            AppColors.border,
-                            AppColors.deepForest,
-                          ],
-                        ),
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Women',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 15),
-
-                    // Kids
-                    Container(
-                      width: 60,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            AppColors.border,
-                            AppColors.deepForest,
-                          ],
-                        ),
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Kids',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 15),
-
-                    // Unisex
-                    Container(
-                      width: 80,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            AppColors.border,
-                            AppColors.deepForest,
-                          ],
-                        ),
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Unisex',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 15),
-
-                    // Streetwear
-                    Container(
-                      width: 110,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            AppColors.border,
-                            AppColors.deepForest,
-                          ],
-                        ),
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Streetwear',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 15),
-
-                    // Accessories
-                    Container(
-                      width: 120,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            AppColors.border,
-                            AppColors.deepForest,
-                          ],
-                        ),
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Accessories',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
+                    for (int i = 0; i < categories.length; i++) ...[
+                      if (i > 0) const SizedBox(width: 15),
+                      _buildCategoryButton(categories[i]),
+                    ],
                   ],
                 ),
               ),
@@ -343,10 +205,63 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
     );
   }
 
+  Widget _buildCategoryButton(String category) {
+    final isSelected = selectedCategory == category;
+
+    final widths = <String, double>{
+      'All': 60,
+      'Men': 60,
+      'Women': 80,
+      'Kids': 60,
+      'Unisex': 80,
+      'Streetwear': 110,
+      'Accessories': 120,
+    };
+
+    return InkWell(
+      onTap: () => onCategorySelected(category),
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        width: widths[category],
+        height: 30,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isSelected
+                ? [
+                    AppColors.border,
+                    AppColors.deepForest,
+                  ]
+                : [
+                    AppColors.surface,
+                    AppColors.appBackground,
+                  ],
+          ),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primary
+                : AppColors.border,
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          category,
+          style: TextStyle(
+            color: isSelected
+                ? Colors.white
+                : AppColors.textSecondary,
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   bool shouldRebuild(
-    covariant SliverPersistentHeaderDelegate oldDelegate,
+    covariant _StickySearchDelegate oldDelegate,
   ) {
-    return false;
+    return oldDelegate.selectedCategory != selectedCategory;
   }
 }
