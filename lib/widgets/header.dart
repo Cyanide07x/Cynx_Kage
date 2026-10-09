@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import '../theme/appcolors.dart';
 
 class Header extends StatelessWidget {
-  const Header({super.key});
+  final VoidCallback? onNotificationTap;
+  final VoidCallback? onCartTap;
+
+  const Header({
+    super.key,
+    this.onNotificationTap,
+    this.onCartTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,21 +38,17 @@ class Header extends StatelessWidget {
                 ),
               ),
             ),
-
             const Spacer(),
-
             IconButton(
               icon: const Icon(Icons.notifications_outlined),
               color: AppColors.primary,
-              onPressed: () {},
+              onPressed: onNotificationTap,
             ),
-
             IconButton(
               icon: const Icon(Icons.shopping_bag_outlined),
               color: AppColors.primary,
-              onPressed: () {},
+              onPressed: onCartTap,
             ),
-
             const SizedBox(width: 5),
           ],
         ),

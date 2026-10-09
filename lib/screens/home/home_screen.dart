@@ -2,19 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../theme/appcolors.dart';
-import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 import '../../widgets/searchbar.dart';
 import '../../widgets/new_arrivals.dart';
 import '../../Widgets/trending.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool showNavigation;
+
+  const HomeScreen({
+    super.key,
+    this.showNavigation = true,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
@@ -24,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const Header(),
+            if (widget.showNavigation) const Header(),
 
             Expanded(
               child: CustomScrollView(
@@ -81,14 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
 
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Footer(
-          onAccountTap: () {
-            // Account will be added later
-          },
-        ),
-      ),
+      bottomNavigationBar: null,
     );
   }
 }

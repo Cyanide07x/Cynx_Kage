@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'screens/splash/splash_screen.dart';
 import 'screens/login/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'screens/home/home_screen.dart';
+import 'screens/navigation/navigation_shell.dart';
 
 final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
 
@@ -36,7 +36,8 @@ class CynxKageApp extends StatelessWidget {
           final isLoggedIn = await checkLoginStatus();
           if (isLoggedIn) {
             navKey.currentState!.pushReplacement(
-              MaterialPageRoute(builder: (_) => const HomeScreen()),
+              MaterialPageRoute(
+                builder: (_) => const NavigationShell()),
             );
           } else {
             navKey.currentState!.pushReplacement(

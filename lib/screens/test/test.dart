@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../widgets/footer.dart';
 import '../../widgets/header.dart';
 import '../../theme/appcolors.dart';
 
@@ -25,7 +24,7 @@ class TestScreen extends StatelessWidget {
         ],
       ),
 
-      bottomNavigationBar: const Footer(),
+      
     );
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../theme/appcolors.dart';
+import '../../../theme/appcolors.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
