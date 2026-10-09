@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/appcolors.dart';
+import '../screens/account/account_screen.dart';
+import '../screens/wishlist/wishlist_screen.dart';
+import '../screens/home/home_screen.dart';
 
 class Footer extends StatelessWidget {
   final VoidCallback? onAccountTap;
@@ -22,6 +25,11 @@ class Footer extends StatelessWidget {
             icon: const Icon(Icons.home),
             color: AppColors.primary,
             onPressed: () {
+              Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context)=> const HomeScreen(),
+              ),
+              );
               // Handle home button press
             },
           ),
@@ -29,6 +37,10 @@ class Footer extends StatelessWidget {
             icon: const Icon(Icons.favorite_border),
             color: AppColors.primary,
             onPressed: () {
+              Navigator.push(context,
+              MaterialPageRoute(builder: (context)=> const WishlistScreen(),
+              ),
+              );
               // Handle wishlist button press
             },
           ),
@@ -43,7 +55,10 @@ class Footer extends StatelessWidget {
             icon: const Icon(Icons.person),
             color: AppColors.primary,
             onPressed: () {
-              onAccountTap?.call();
+              Navigator.push(context,
+              MaterialPageRoute(builder: (context)=> const AccountScreen(),
+               ),
+               );
               // Handle profile button press
             },
           ),
