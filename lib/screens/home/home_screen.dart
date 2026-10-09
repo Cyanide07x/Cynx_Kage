@@ -226,7 +226,7 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
 
     return InkWell(
       onTap: () => onCategorySelected(category),
-      borderRadius: BorderRadius.circular(30),
+      borderRadius: BorderRadius.circular(5),
       child: Container(
         width: widths[category],
         height: 30,
@@ -248,7 +248,7 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
                 : AppColors.border,
             width: 2,
           ),
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(10),
         ),
         alignment: Alignment.center,
         child: Text(
