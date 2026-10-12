@@ -10,6 +10,7 @@ import '../wishlist/wishlist_screen.dart';
 import '../account/account_screen.dart';
 import '../notifications/notification_screen.dart';
 import '../cart/cart_screen.dart';
+import '../offers/offers_screen.dart';
 
 class NavigationShell extends StatefulWidget {
   const NavigationShell({super.key});
@@ -24,12 +25,7 @@ class _NavigationShellState extends State<NavigationShell> {
   late final List<Widget> pages = [
     const HomeScreen(showNavigation: false),
     const WishlistScreen(),
-    const Center(
-      child: Text(
-        'Category',
-        style: TextStyle(color: AppColors.text),
-      ),
-    ),
+    const OfferScreen(),
     const AccountScreen(),
     const CartScreen(),
     const NotificationScreen(),
