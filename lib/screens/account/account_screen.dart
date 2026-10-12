@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/appcolors.dart';
+import 'tracker.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
@@ -157,7 +158,35 @@ class AccountScreen extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 30),
+
+Row(
+  children: [
+    const Expanded(
+      child: Tracker(
+        count: '00',
+        title: 'Orders',
+      ),
+    ),
+    const SizedBox(width: 10),
+    const Expanded(
+      child: Tracker(
+        count: '00',
+        title: 'Wishlist',
+      ),
+    ),
+    const SizedBox(width: 10),
+    const Expanded(
+      child: Tracker(
+        count: '03',
+        title: 'Coupons',
+      ),
+    ),
+  ],
+),
             ],
+
+            
           ),
         ),
       ),
