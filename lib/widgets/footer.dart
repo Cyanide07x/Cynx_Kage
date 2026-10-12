@@ -15,7 +15,7 @@ class Footer extends StatelessWidget {
   final List<IconData> icons = const [
     Icons.home_outlined,
     Icons.favorite_border,
-    Icons.category_outlined,
+    Icons.local_offer_outlined,
     Icons.person_outline,
   ];
 
