@@ -89,9 +89,9 @@ class _FlashSaleCardState extends State<FlashSaleCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'FLASH SALE',
-            style: TextStyle(
+          Text(
+          widget.saleTitle,
+            style: const TextStyle(
               color: AppColors.appBackground,
               fontSize: 11,
               fontWeight: FontWeight.w900,
@@ -99,9 +99,9 @@ class _FlashSaleCardState extends State<FlashSaleCard> {
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'UP TO 50%\nOFF',
-            style: TextStyle(
+          Text(
+            widget.discountText,
+            style: const TextStyle(
               color: AppColors.appBackground,
               fontSize: 34,
               height: 1,
@@ -110,9 +110,9 @@ class _FlashSaleCardState extends State<FlashSaleCard> {
             ),
           ),
           const SizedBox(height: 5),
-          const Text(
-            'On streetwear, hoodies & more',
-            style: TextStyle(
+          Text(
+            widget.description,
+            style: const TextStyle(
               color: AppColors.deepForest,
               fontSize: 12,
             ),
