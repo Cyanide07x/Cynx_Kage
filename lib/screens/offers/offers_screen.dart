@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/appcolors.dart';
 import '../../widgets/offer_filter_button.dart';
+import '../../widgets/flash_sale_card.dart';
 
 class OfferScreen extends StatefulWidget {
   const OfferScreen({super.key});
@@ -111,6 +112,21 @@ class _OfferScreenState extends State<OfferScreen> {
                     },
                   ),
                 ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // Flash sale card
+              SizedBox(
+                width: double.infinity,
+                child: FlashSaleCard(
+                  endsAt: DateTime.now().add(
+                    const Duration(days: 15),
+                  ),
+                  onShopNow: () {
+                    // We'll connect sale products later.
+                  },
+                ),
               ),
             ],
           ),
