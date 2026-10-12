@@ -46,7 +46,7 @@ Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Carts',
+            'Cart',
             style: TextStyle(
               color: AppColors.text,
               fontSize: 26,
