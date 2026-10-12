@@ -1,6 +1,8 @@
+
 import 'package:flutter/material.dart';
 import '../../theme/appcolors.dart';
 import 'tracker.dart';
+import 'account_action_button.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
@@ -10,14 +12,18 @@ class AccountScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.appBackground,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(left: 5, right: 20),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(
+            left: 5,
+            right: 20,
+            bottom: 24,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 25),
 
-              // Existing Account header — unchanged
+              // Account header
               Row(
                 children: [
                   Container(
@@ -69,10 +75,9 @@ class AccountScreen extends StatelessWidget {
                 ],
               ),
 
-              // Space between header and profile
+              // Profile section
               const SizedBox(height: 32),
 
-              // Profile row
               Row(
                 children: [
                   // Avatar
@@ -158,35 +163,119 @@ class AccountScreen extends StatelessWidget {
                   ),
                 ],
               ),
+
+              // Tracker boxes
               const SizedBox(height: 30),
 
-Row(
-  children: [
-    const Expanded(
-      child: Tracker(
-        count: '00',
-        title: 'Orders',
-      ),
-    ),
-    const SizedBox(width: 10),
-    const Expanded(
-      child: Tracker(
-        count: '00',
-        title: 'Wishlist',
-      ),
-    ),
-    const SizedBox(width: 10),
-    const Expanded(
-      child: Tracker(
-        count: '03',
-        title: 'Coupons',
-      ),
-    ),
-  ],
-),
-            ],
+              const Row(
+                children: [
+                  Expanded(
+                    child: Tracker(
+                      count: '00',
+                      title: 'Orders',
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Tracker(
+                      count: '00',
+                      title: 'Wishlist',
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Tracker(
+                      count: '03',
+                      title: 'Coupons',
+                    ),
+                  ),
+                ],
+              ),
 
-            
+              // Account action buttons
+              const SizedBox(height: 24),
+
+              AccountActionButton(
+                icon: Icons.shopping_bag_outlined,
+                title: 'My Orders',
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('My Orders clicked!'),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 12),
+
+              AccountActionButton(
+                icon: Icons.location_on_outlined,
+                title: 'Saved Addresses',
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Saved Addresses clicked!'),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+
+              AccountActionButton(
+                icon: Icons.credit_card_outlined,
+                title: 'Payment methods',
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Payment clicked!'),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+
+              AccountActionButton(
+                icon: Icons.headset_mic_outlined,
+                title: 'Help & Support',
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Help & Support clicked!'),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+
+              AccountActionButton(
+                icon: Icons.settings_outlined,
+                title: 'Settings',
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Settings clicked!'),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 12),
+
+              AccountActionButton(
+                icon: Icons.logout,
+                title: 'Log out',
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Log Out clicked!'),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 16),
+            ],
           ),
         ),
       ),
