@@ -55,7 +55,7 @@ Row(
           ),
           SizedBox(height: 4),
           Text(
-            'Deals picked for you',
+            'Almost yours',
             style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 13,

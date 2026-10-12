@@ -55,7 +55,7 @@ Row(
           ),
           SizedBox(height: 4),
           Text(
-            'Deals picked for you',
+            'Deals made for movers.',
             style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 13,

@@ -55,7 +55,7 @@ Row(
           ),
           SizedBox(height: 4),
           Text(
-            'Your gear, your rules.',
+            'First to know, first to wear.',
             style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 13,
