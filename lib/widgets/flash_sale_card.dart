@@ -4,14 +4,23 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../theme/appcolors.dart';
 
+
 class FlashSaleCard extends StatefulWidget {
   final DateTime endsAt;
   final VoidCallback? onShopNow;
+
+  // Custom content for each sale
+  final String saleTitle;
+  final String discountText;
+  final String description;
 
   const FlashSaleCard({
     super.key,
     required this.endsAt,
     this.onShopNow,
+    this.saleTitle = 'FLASH SALE',
+    this.discountText = 'UP TO 50%\nOFF',
+    this.description = 'On streetwear, hoodies & more',
   });
 
   @override

@@ -1,7 +1,10 @@
+
 import 'package:flutter/material.dart';
+
 import '../../theme/appcolors.dart';
 import '../../widgets/offer_filter_button.dart';
 import '../../widgets/flash_sale_card.dart';
+import '../../widgets/coupon_card.dart';
 
 class OfferScreen extends StatefulWidget {
   const OfferScreen({super.key});
@@ -116,16 +119,63 @@ class _OfferScreenState extends State<OfferScreen> {
 
               const SizedBox(height: 24),
 
-              // Flash sale card
-              SizedBox(
-                width: double.infinity,
-                child: FlashSaleCard(
-                  endsAt: DateTime.now().add(
-                    const Duration(days: 15),
+              // Scrollable offer content
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Flash sale
+                      if (selectedFilter != 'Coupons') ...[
+                        SizedBox(
+                          width: double.infinity,
+                          child: FlashSaleCard(
+                            endsAt: DateTime.now().add(
+                              const Duration(days: 15),
+                            ),
+                            onShopNow: () {
+                              // Connect sale products later.
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+
+                      // Coupons section
+                      if (selectedFilter != 'Flash deals') ...[
+                        const Text(
+                          'Your coupons',
+                          style: TextStyle(
+                            color: AppColors.text,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        const CouponCard(
+                          discount: '20%',
+                          description: 'On your first order',
+                          code: 'FIRST20',
+                        ),
+                        const SizedBox(height: 12),
+
+                        const CouponCard(
+                          discount: '50%',
+                          description: 'On your orders above RS. 1999',
+                          code: 'OVER1999',
+                        ),
+                        const SizedBox(height: 12),
+
+                        const CouponCard(
+                          discount: 'Buy 2 Get 1',
+                          description: 'On your first order',
+                          code: 'B2G1',
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ],
                   ),
-                  onShopNow: () {
-                    // We'll connect sale products later.
-                  },
                 ),
               ),
             ],
