@@ -1,6 +1,8 @@
-
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../theme/appcolors.dart';
+import '../login/login_screen.dart';
 import 'tracker.dart';
 import 'account_action_button.dart';
 
@@ -265,12 +267,27 @@ class AccountScreen extends StatelessWidget {
               AccountActionButton(
                 icon: Icons.logout,
                 title: 'Log out',
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Log Out clicked!'),
-                    ),
-                  );
+                onTap: () async {
+                  try {
+                    await FirebaseAuth.instance.signOut();
+
+                    if (!context.mounted) return;
+
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (_) => const LoginScreen(),
+                      ),
+                      (route) => false,
+                    );
+                  } catch (e) {
+                    if (!context.mounted) return;
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Unable to log out. Please try again.'),
+                      ),
+                    );
+                  }
                 },
               ),
 

@@ -1,23 +1,25 @@
-// Save as: lib/main.dart
-//
-// Matches your existing screens:
-//   SplashScreen(onFinished: ...)  -> opens LoginScreen()
-//   LoginScreen()                  -> opens HomeScreen() by itself
-
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'firebase_options.dart';
 import 'screens/splash/splash_screen.dart';
 import 'screens/login/login_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/navigation/navigation_shell.dart';
 
 final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
 
 Future<bool> checkLoginStatus() async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getBool('isLoggedIn') ?? false;
+  return FirebaseAuth.instance.currentUser != null;
 }
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const CynxKageApp());
 }
 
@@ -30,22 +32,28 @@ class CynxKageApp extends StatelessWidget {
       title: 'Cynx Kage',
       navigatorKey: navKey,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(brightness: Brightness.dark, useMaterial3: true),
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        useMaterial3: true,
+      ),
       home: SplashScreen(
-        onFinished: () async{
+        onFinished: () async {
           final isLoggedIn = await checkLoginStatus();
+
           if (isLoggedIn) {
             navKey.currentState!.pushReplacement(
               MaterialPageRoute(
-                builder: (_) => const NavigationShell()),
+                builder: (_) => const NavigationShell(),
+              ),
             );
           } else {
             navKey.currentState!.pushReplacement(
-              MaterialPageRoute(builder: (_) => const LoginScreen()),
+              MaterialPageRoute(
+                builder: (_) => const LoginScreen(),
+              ),
             );
           }
         },
-        
       ),
     );
   }

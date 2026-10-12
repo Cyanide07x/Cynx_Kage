@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "699355006462",
+    "project_id": "cynx-kage",
+    "storage_bucket": "cynx-kage.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:699355006462:android:d078c26d5353fb8f9c2caf",
+        "android_client_info": {
+          "package_name": "com.example.cynx_cage"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgXK5v9a-5XcQ-vXJCjA1mxWzKkDZVZD0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
