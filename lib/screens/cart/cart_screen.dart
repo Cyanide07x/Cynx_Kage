@@ -31,6 +31,9 @@ Row(
       child: IconButton(
         padding: EdgeInsets.zero,
         onPressed: () {
+          if (Navigator.of(context).canPop()){
+                          Navigator.of(context).pop();
+                        }
           // Back button action
         },
         icon: const Icon(

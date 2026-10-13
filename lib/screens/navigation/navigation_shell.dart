@@ -1,4 +1,6 @@
 
+import 'package:cynx_cage/screens/cart/cart_screen.dart';
+import 'package:cynx_cage/screens/notifications/notification_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../theme/appcolors.dart';
@@ -8,8 +10,6 @@ import '../../widgets/footer.dart';
 import '../home/home_screen.dart';
 import '../wishlist/wishlist_screen.dart';
 import '../account/account_screen.dart';
-import '../notifications/notification_screen.dart';
-import '../cart/cart_screen.dart';
 import '../offers/offers_screen.dart';
 
 class NavigationShell extends StatefulWidget {
@@ -27,8 +27,6 @@ class _NavigationShellState extends State<NavigationShell> {
     const WishlistScreen(),
     const OfferScreen(),
     const AccountScreen(),
-    const CartScreen(),
-    const NotificationScreen(),
   ];
 
   @override
@@ -41,14 +39,18 @@ class _NavigationShellState extends State<NavigationShell> {
           children: [
             Header(
               onNotificationTap: () {
-                setState(() {
-                  selectedIndex = 5;
-                });
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const NotificationScreen()
+                  ),
+                );
               },
               onCartTap: () {
-                setState(() {
-                  selectedIndex = 4;
-                });
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const CartScreen()
+                  ),
+                );
               },
             ),
 
