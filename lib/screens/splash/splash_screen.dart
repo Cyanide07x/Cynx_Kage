@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class KageColors {
   static const background = Color(0xFF0B0B0B);
   static const surface = Color(0xFF171717);
-  static const border = Color(0xFF333333);
+  static const border = Color(0xFFC5E37A);
   static const accent = Color(0xFFF2F2F2);
   static const text = Color(0xFFFAFAFA);
   static const dim = Color(0xFFA3A3A3);

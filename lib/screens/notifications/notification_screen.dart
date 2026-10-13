@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/appcolors.dart';
+import 'notification_card.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
@@ -70,6 +71,22 @@ Row(
   ],
 ),
 
+const SizedBox(height: 20),
+Text('TODAY'),
+
+const SizedBox(height: 15),
+
+NotificationCard(
+  icon: Icons.local_shipping_outlined,
+  title: 'Your order is on its way',
+  description: 'Hoodie + 1 more · arriving [DATE]',
+  time: '2m',
+  isUnread: true,
+),
+
+const SizedBox(height: 15),
+
+NotificationCard(icon: Icons.add_business, title: 'New Arrivals', description: 'Check it now', time: '1hr')
           ],
         ),
       ),
