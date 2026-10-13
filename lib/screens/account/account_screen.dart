@@ -357,10 +357,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     child: IconButton(
                       padding: EdgeInsets.zero,
                       onPressed: () {
-                        if (Navigator.of(context).canPop()){
-                          Navigator.of(context).pop();
-                        }
-                        // Back button action
+                        Navigator.of(context).maybePop();    // Back button action
                       },
                       icon: const Icon(
                         Icons.arrow_back,
