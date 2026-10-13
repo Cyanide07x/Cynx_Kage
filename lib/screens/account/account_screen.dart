@@ -1,13 +1,329 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../theme/appcolors.dart';
 import '../login/login_screen.dart';
 import 'tracker.dart';
 import 'account_action_button.dart';
 
-class AccountScreen extends StatelessWidget {
+class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
+
+  @override
+  State<AccountScreen> createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends State<AccountScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ImagePicker _imagePicker = ImagePicker();
+  final TextEditingController _nameController = TextEditingController();
+
+  String? _photoPath;
+  bool _isSavingProfile = false;
+
+  User? get _user => _auth.currentUser;
+
+  String get _displayName {
+    final name = _user?.displayName?.trim();
+    if (name != null && name.isNotEmpty) return name;
+    return 'User';
+  }
+
+  String get _email => _user?.email ?? '';
+
+  String get _initials {
+    final parts = _displayName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .toList();
+
+    if (parts.isEmpty || _displayName == 'User') return 'U';
+    if (parts.length == 1) {
+      return parts.first.substring(0, 1).toUpperCase();
+    }
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPhotoPath();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadPhotoPath() async {
+    final prefs = await SharedPreferences.getInstance();
+    final path = prefs.getString('profilePhotoPath');
+    if (!mounted) return;
+
+    setState(() {
+      _photoPath = path;
+    });
+  }
+
+  Future<void> _choosePhoto() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 1000,
+      );
+
+      if (image == null) return;
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('profilePhotoPath', image.path);
+
+      if (!mounted) return;
+      setState(() {
+        _photoPath = image.path;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not select the photo. Please try again.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _editProfile() async {
+    _nameController.text = _user?.displayName ?? '';
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            final hasPhoto = _photoPath != null &&
+                File(_photoPath!).existsSync();
+
+            return AlertDialog(
+              backgroundColor: AppColors.surface,
+              title: const Text(
+                'Edit profile',
+                style: TextStyle(color: AppColors.text),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: () async {
+                        await _choosePhoto();
+                        if (!mounted || !dialogContext.mounted) return;
+                        setDialogState(() {});
+                      },
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: 88,
+                            height: 88,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.deepForest,
+                              border: Border.all(
+                                color: AppColors.primary,
+                                width: 2,
+                              ),
+                              image: hasPhoto
+                                  ? DecorationImage(
+                                      image: FileImage(File(_photoPath!)),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
+                            ),
+                            child: !hasPhoto
+                                ? Center(
+                                    child: Text(
+                                      _initials,
+                                      style: const TextStyle(
+                                        color: AppColors.primary,
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: AppColors.primary,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt_outlined,
+                                size: 16,
+                                color: AppColors.appBackground,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Tap the avatar to change photo',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: _nameController,
+                      textCapitalization: TextCapitalization.words,
+                      style: const TextStyle(color: AppColors.text),
+                      decoration: InputDecoration(
+                        labelText: 'Display name',
+                        labelStyle: const TextStyle(
+                          color: AppColors.textSecondary,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: AppColors.border,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: AppColors.primary,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        _email,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: _isSavingProfile
+                      ? null
+                      : () => Navigator.pop(dialogContext),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: _isSavingProfile
+                      ? null
+                      : () async {
+                          final name = _nameController.text.trim();
+
+                          if (name.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Display name cannot be empty.'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          setState(() => _isSavingProfile = true);
+                          setDialogState(() {});
+
+                          try {
+                            final user = _auth.currentUser;
+                            if (user == null) {
+                              throw FirebaseAuthException(
+                                code: 'user-not-signed-in',
+                                message: 'Please sign in again.',
+                              );
+                            }
+
+                            await user.updateDisplayName(name);
+                            await user.reload();
+
+                            if (!mounted || !dialogContext.mounted) return;
+
+                            setState(() {
+                              _isSavingProfile = false;
+                            });
+
+                            Navigator.pop(dialogContext);
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Profile updated successfully.'),
+                              ),
+                            );
+                          } on FirebaseAuthException catch (e) {
+                            if (!mounted || !dialogContext.mounted) return;
+
+                            setState(() {
+                              _isSavingProfile = false;
+                            });
+                            setDialogState(() {});
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  e.message ?? 'Could not update profile.',
+                                ),
+                              ),
+                            );
+                          } catch (_) {
+                            if (!mounted || !dialogContext.mounted) return;
+
+                            setState(() {
+                              _isSavingProfile = false;
+                            });
+                            setDialogState(() {});
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Could not update profile.'),
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.appBackground,
+                  ),
+                  child: _isSavingProfile
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +398,6 @@ class AccountScreen extends StatelessWidget {
 
               Row(
                 children: [
-                  // Avatar
                   Container(
                     width: 76,
                     height: 76,
@@ -93,42 +408,49 @@ class AccountScreen extends StatelessWidget {
                         color: AppColors.primary,
                         width: 2,
                       ),
+                      image: _photoPath != null &&
+                              File(_photoPath!).existsSync()
+                          ? DecorationImage(
+                              image: FileImage(File(_photoPath!)),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
-                    child: const Center(
-                      child: Text(
-                        'US',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 25,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
+                    child: _photoPath == null ||
+                            !File(_photoPath!).existsSync()
+                        ? Center(
+                            child: Text(
+                              _initials,
+                              style: const TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 25,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          )
+                        : null,
                   ),
-
                   const SizedBox(width: 20),
-
-                  // Name and email
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Utsav Sachan',
+                          _displayName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppColors.text,
                             fontSize: 26,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
-                        SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         Text(
-                          'utsav0724@gmail.com',
+                          _email,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 12,
                           ),
@@ -136,10 +458,7 @@ class AccountScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   const SizedBox(width: 10),
-
-                  // Edit profile button
                   Container(
                     width: 44,
                     height: 44,
@@ -153,9 +472,7 @@ class AccountScreen extends StatelessWidget {
                     child: IconButton(
                       padding: EdgeInsets.zero,
                       tooltip: 'Edit profile',
-                      onPressed: () {
-                        // Connect the edit profile screen later.
-                      },
+                      onPressed: _editProfile,
                       icon: const Icon(
                         Icons.edit_outlined,
                         color: AppColors.primary,
@@ -269,7 +586,7 @@ class AccountScreen extends StatelessWidget {
                 title: 'Log out',
                 onTap: () async {
                   try {
-                    await FirebaseAuth.instance.signOut();
+                    await _auth.signOut();
 
                     if (!context.mounted) return;
 
@@ -279,7 +596,7 @@ class AccountScreen extends StatelessWidget {
                       ),
                       (route) => false,
                     );
-                  } catch (e) {
+                  } catch (_) {
                     if (!context.mounted) return;
 
                     ScaffoldMessenger.of(context).showSnackBar(
