@@ -17,7 +17,7 @@ class _CartScreenState extends State<CartScreen> {
   CartItem(
     productId: 'test-001',
     name: 'Oversized Graphic Tee',
-    imageUrl: '',
+    imageUrl: 'assets/images/Trending_image/Trending_2.jpg',
     price: 799,
     size: 'L',
     color: 'Black',
@@ -26,7 +26,7 @@ class _CartScreenState extends State<CartScreen> {
   CartItem(
     productId: 'test-002',
     name: 'Essential Hoodie',
-    imageUrl: '',
+    imageUrl: 'assets/images/Trending_image/Trending_3.jpg',
     price: 1299,
     size: 'M',
     color: 'Bone',
@@ -35,7 +35,7 @@ class _CartScreenState extends State<CartScreen> {
   CartItem(
     productId: 'test-003',
     name: 'Cargo Pants',
-    imageUrl: '',
+    imageUrl: 'assets/images/Trending_image/Trending_6.jpg',
     price: 999,
     size: '32',
     color: 'Olive',

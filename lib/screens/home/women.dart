@@ -9,12 +9,12 @@ class WomenScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final products = [
-      {'name': 'Oversized T-shirt', 'price': 'Rs. 999'},
-      {'name': 'Wide-Leg Jeans', 'price': 'Rs. 1,499'},
-      {'name': 'Crop Top', 'price': 'Rs. 799'},
-      {'name': "Women's Jacket", 'price': 'Rs. 2,499'},
-      {'name': 'Cargo Pants', 'price': 'Rs. 1,299'},
-      {'name': 'Casual Shirt', 'price': 'Rs. 1,199'},
+      {'name': 'Oversized T-shirt', 'price': 'Rs. 999', 'image' : 'assets/images/Trending_image/Trending_1.jpg'},
+      {'name': 'Wide-Leg Jeans', 'price': 'Rs. 1,499', 'image' : 'assets/images/Trending_image/Trending_2.jpg'},
+      {'name': 'Crop Top', 'price': 'Rs. 799', 'image' : 'assets/images/Trending_image/Trending_3.jpg'},
+      {'name': "Women's Jacket", 'price': 'Rs. 2,499', 'image' : 'assets/images/Trending_image/Trending_4.jpg'},
+      {'name': 'Cargo Pants', 'price': 'Rs. 1,299', 'image' : 'assets/images/Trending_image/Trending_5.jpg'},
+      {'name': 'Casual Shirt', 'price': 'Rs. 1,199', 'image' : 'assets/images/Trending_image/Trending_6.jpg'},
     ];
 
     return Padding(
@@ -67,6 +67,7 @@ class WomenScreen extends StatelessWidget {
               return TrendingProductCard(
                 name: product['name']!,
                 price: product['price']!,
+                imageAsset: product['image']!,
               );
             },
           ),

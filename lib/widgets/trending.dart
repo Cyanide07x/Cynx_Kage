@@ -48,30 +48,43 @@ class Trending extends StatelessWidget {
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
           padding: const EdgeInsets.symmetric(horizontal: 20),
+          childAspectRatio: 0.78,
           children: const [
             TrendingProductCard(
               name: 'Oversized T-shirt',
               price: 'Rs. 999',
+              imageAsset:
+                  'assets/images/Trending_image/Trending_1.jpg',
             ),
             TrendingProductCard(
               name: 'Cargo Pants',
               price: 'Rs. 1,499',
+              imageAsset:
+                  'assets/images/Trending_image/Trending_2.jpg',
             ),
             TrendingProductCard(
               name: 'Straight Jeans',
               price: 'Rs. 999',
+              imageAsset:
+                  'assets/images/Trending_image/Trending_3.jpg',
             ),
             TrendingProductCard(
               name: 'Jackets',
               price: 'Rs. 2,999',
+              imageAsset:
+                  'assets/images/Trending_image/Trending_4.jpg',
             ),
             TrendingProductCard(
               name: 'Boxer-Shirts',
               price: 'Rs. 999',
+              imageAsset:
+                  'assets/images/Trending_image/Trending_5.jpg',
             ),
             TrendingProductCard(
               name: 'Boxer Fit Jacket',
               price: 'Rs. 1,999',
+              imageAsset:
+                  'assets/images/Trending_image/Trending_6.jpg',
             ),
           ],
         ),
@@ -83,11 +96,13 @@ class Trending extends StatelessWidget {
 class TrendingProductCard extends StatefulWidget {
   final String name;
   final String price;
+  final String? imageAsset;
 
   const TrendingProductCard({
     super.key,
     required this.name,
     required this.price,
+    this.imageAsset,
   });
 
   @override
@@ -121,38 +136,82 @@ class _TrendingProductCardState extends State<TrendingProductCard>
             width: double.infinity,
             height: 250,
             margin: const EdgeInsets.all(1.2),
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(18.8),
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(15),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.name,
-                      style: const TextStyle(
-                        color: AppColors.text,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Product image (optional)
+                if (widget.imageAsset != null &&
+                    widget.imageAsset!.isNotEmpty)
+                  Image.asset(
+                    widget.imageAsset!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: AppColors.surface,
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.image_not_supported_outlined,
+                          color: AppColors.textSecondary,
+                          size: 35,
+                        ),
+                      );
+                    },
+                  ),
+
+                // Dark gradient for readable product details
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Color(0x22000000),
+                        Color(0xE6000000),
+                      ],
+                      stops: [0.35, 0.58, 1.0],
                     ),
-                    const SizedBox(height: 5),
-                    Text(
-                      widget.price,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+
+                // Product name and price
+                Padding(
+                  padding: const EdgeInsets.all(15),
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.text,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          widget.price,
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );

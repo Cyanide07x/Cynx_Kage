@@ -11,10 +11,10 @@ class WishlistScreen extends StatefulWidget {
 
 class _WishlistScreenState extends State<WishlistScreen> {
   final List<Map<String, String>> wishlistItems = [
-    {'name': 'Oversized T-shirt', 'price': 'Rs. 999'},
-    {'name': 'Cargo Pants', 'price': 'Rs. 1,499'},
-    {'name': 'Straight Jeans', 'price': 'Rs. 999'},
-    {'name': 'Jackets', 'price': 'Rs. 2,999'},
+    {'name': 'Oversized T-shirt', 'price': 'Rs. 999', 'image': 'assets/images/Trending_image/Trending_3.jpg'},
+    {'name': 'Cargo Pants', 'price': 'Rs. 1,499', 'image': 'assets/images/Trending_image/Trending_4.jpg'},
+    {'name': 'Straight Jeans', 'price': 'Rs. 999', 'image': 'assets/images/Trending_image/Trending_5.jpg'},
+    {'name': 'Jackets', 'price': 'Rs. 2,999', 'image': 'assets/images/Trending_image/Trending_6.jpg'},
   ];
 
   @override
@@ -130,6 +130,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     return TrendingProductCard(
   name: product['name']!,
   price: product['price']!,
+  imageAsset: product['image']!,
 );
                   },
                 ),

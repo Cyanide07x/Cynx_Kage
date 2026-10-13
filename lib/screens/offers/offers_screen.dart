@@ -292,8 +292,8 @@ if (nextIndex < flashSales.length) {
                         const SizedBox(height: 12),
 
                         const CouponCard(
-                          discount: 'Buy 2 Get 1',
-                          description: 'On your first order',
+                          discount: 'B2G1',
+                          description: 'Buy 2 Get 1 On your first order',
                           code: 'B2G1',
                         ),
                         const SizedBox(height: 20),

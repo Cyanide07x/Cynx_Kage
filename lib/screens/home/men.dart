@@ -8,12 +8,12 @@ class MenScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final products = [
-      {'name': 'Oversized T-shirt', 'price': 'Rs. 999'},
-      {'name': 'Cargo Pants', 'price': 'Rs. 1,499'},
-      {'name': 'Straight Jeans', 'price': 'Rs. 999'},
-      {'name': 'Jackets', 'price': 'Rs. 2,999'},
-      {'name': 'Boxer Shirts', 'price': 'Rs. 999'},
-      {'name': 'Boxer Fit Jacket', 'price': 'Rs. 1,999'},
+      {'name': 'Oversized T-shirt', 'price': 'Rs. 999', 'image' : 'assets/images/Trending_image/Trending_1.jpg'},
+      {'name': 'Cargo Pants', 'price': 'Rs. 1,499', 'image' : 'assets/images/Trending_image/Trending_2.jpg'},
+      {'name': 'Straight Jeans', 'price': 'Rs. 999', 'image' : 'assets/images/Trending_image/Trending_3.jpg'},
+      {'name': 'Jackets', 'price': 'Rs. 2,999', 'image' : 'assets/images/Trending_image/Trending_4.jpg'},
+      {'name': 'Boxer Shirts', 'price': 'Rs. 999', 'image' : 'assets/images/Trending_image/Trending_5.jpg'},
+      {'name': 'Boxer Fit Jacket', 'price': 'Rs. 1,999', 'image' : 'assets/images/Trending_image/Trending_6.jpg'},
     ];
 
     return SingleChildScrollView(
@@ -62,6 +62,7 @@ class MenScreen extends StatelessWidget {
               return TrendingProductCard(
                 name: product['name']!,
                 price: product['price']!,
+                imageAsset: product['image']!,
               );
             },
           ),
