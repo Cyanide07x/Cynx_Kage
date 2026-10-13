@@ -40,7 +40,7 @@ class NotificationCard extends StatelessWidget{
           children: [
             Container(
               width: 36,
-              height: 45,
+              height: 36,
               decoration: BoxDecoration(
                 border: Border.all(
                     color: AppColors.border,
