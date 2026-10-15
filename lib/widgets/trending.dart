@@ -1,3 +1,4 @@
+
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../theme/appcolors.dart';
@@ -53,38 +54,32 @@ class Trending extends StatelessWidget {
             TrendingProductCard(
               name: 'Oversized T-shirt',
               price: 'Rs. 999',
-              imageAsset:
-                  'assets/images/Trending_image/Trending_1.jpg',
+              imageAsset: 'assets/images/Trending_image/Trending_1.jpg',
             ),
             TrendingProductCard(
               name: 'Cargo Pants',
               price: 'Rs. 1,499',
-              imageAsset:
-                  'assets/images/Trending_image/Trending_2.jpg',
+              imageAsset: 'assets/images/Trending_image/Trending_2.jpg',
             ),
             TrendingProductCard(
               name: 'Straight Jeans',
               price: 'Rs. 999',
-              imageAsset:
-                  'assets/images/Trending_image/Trending_3.jpg',
+              imageAsset: 'assets/images/Trending_image/Trending_3.jpg',
             ),
             TrendingProductCard(
               name: 'Jackets',
               price: 'Rs. 2,999',
-              imageAsset:
-                  'assets/images/Trending_image/Trending_4.jpg',
+              imageAsset: 'assets/images/Trending_image/Trending_4.jpg',
             ),
             TrendingProductCard(
               name: 'Boxer-Shirts',
               price: 'Rs. 999',
-              imageAsset:
-                  'assets/images/Trending_image/Trending_5.jpg',
+              imageAsset: 'assets/images/Trending_image/Trending_5.jpg',
             ),
             TrendingProductCard(
               name: 'Boxer Fit Jacket',
               price: 'Rs. 1,999',
-              imageAsset:
-                  'assets/images/Trending_image/Trending_6.jpg',
+              imageAsset: 'assets/images/Trending_image/Trending_6.jpg',
             ),
           ],
         ),
@@ -123,6 +118,47 @@ class _TrendingProductCardState extends State<TrendingProductCard>
     super.dispose();
   }
 
+  // Fallback when an image cannot be loaded.
+  Widget _imagePlaceholder() {
+    return Container(
+      color: AppColors.surface,
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.image_not_supported_outlined,
+        color: AppColors.textSecondary,
+        size: 35,
+      ),
+    );
+  }
+
+  // Supports both online URLs and local asset paths.
+  Widget _buildProductImage() {
+    final image = widget.imageAsset;
+
+    if (image == null || image.isEmpty) {
+      return _imagePlaceholder();
+    }
+
+    if (image.startsWith('http://') ||
+        image.startsWith('https://')) {
+      return Image.network(
+        image,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _imagePlaceholder();
+        },
+      );
+    }
+
+    return Image.asset(
+      image,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return _imagePlaceholder();
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -144,24 +180,8 @@ class _TrendingProductCardState extends State<TrendingProductCard>
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // Product image (optional)
-                if (widget.imageAsset != null &&
-                    widget.imageAsset!.isNotEmpty)
-                  Image.asset(
-                    widget.imageAsset!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: AppColors.surface,
-                        alignment: Alignment.center,
-                        child: const Icon(
-                          Icons.image_not_supported_outlined,
-                          color: AppColors.textSecondary,
-                          size: 35,
-                        ),
-                      );
-                    },
-                  ),
+                // Product image
+                _buildProductImage(),
 
                 // Dark gradient for readable product details
                 const DecoratedBox(
