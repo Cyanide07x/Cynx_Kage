@@ -22,7 +22,7 @@ class WomenScreen extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
             child: Text(
-              "women's Collection",
+              "Women's Collection",
               style: TextStyle(
                 color: AppColors.text,
                 fontSize: 26,

@@ -8,6 +8,7 @@ import '../../widgets/new_arrivals.dart';
 import '../../Widgets/trending.dart';
 import 'men.dart';
 import 'women.dart';
+import 'unisex.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool showNavigation;
@@ -97,6 +98,10 @@ class _HomeScreenState extends State<HomeScreen> {
     // Women's Collection
     if (selectedCategory == 'Women') {
       return const WomenScreen();
+    }
+    
+    if (selectedCategory == 'Unisex') {
+      return const UnisexScreen();
     }
 
     // Original homepage

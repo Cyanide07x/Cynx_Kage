@@ -22,7 +22,7 @@ class UnisexScreen extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
             child: Text(
-              "unisex Collection",
+              "Unisex Collection",
               style: TextStyle(
                 color: AppColors.text,
                 fontSize: 26,
