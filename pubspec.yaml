@@ -12,7 +12,7 @@ dependencies:
     sdk: flutter
 
   flutter_svg: ^2.2.3
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^2.0.0
   shared_preferences: ^2.5.6
   firebase_core: ^4.15.0
   firebase_auth: ^6.7.0
@@ -51,3 +51,5 @@ flutter:
     - assets/images/Trending_image/Trending_5.jpg
     - assets/images/Trending_image/Trending_6.jpg
 
+dependency_overrides:
+  path_provider_android: 2.2.17

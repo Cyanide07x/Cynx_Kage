@@ -1,6 +1,9 @@
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../theme/appcolors.dart';
 
 class NewArrivals extends StatefulWidget {
@@ -12,23 +15,19 @@ class NewArrivals extends StatefulWidget {
 
 class _NewArrivalsState extends State<NewArrivals>
     with SingleTickerProviderStateMixin {
-  Set<int> wishlistedProducts = {};
-
+  final Set<String> wishlistedProducts = {};
   final PageController _pageController = PageController();
 
   Timer? _timer;
-
   int _currentPage = 0;
 
-  final List<String> products = [
-    'assets/images/new_arrival_1.jpg',
-    'assets/images/new_arrival_2.jpg',
-    'assets/images/new_arrival_3.jpg',
-    'assets/images/new_arrival_4.jpg',
-    'assets/images/new_arrival_5.jpg',
-  ];
-
   late AnimationController _newAnimationController;
+
+  final Stream<QuerySnapshot<Map<String, dynamic>>> _productsStream =
+      FirebaseFirestore.instance
+          .collection('catalogProducts')
+          .where('isActive', isEqualTo: true)
+          .snapshots();
 
   @override
   void initState() {
@@ -39,33 +38,18 @@ class _NewArrivalsState extends State<NewArrivals>
       duration: const Duration(milliseconds: 900),
     )..repeat(reverse: true);
 
-    // Preload all product images
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      for (final image in products) {
-        precacheImage(
-          AssetImage(image),
-          context,
-        );
-      }
+    _timer = Timer.periodic(const Duration(seconds: 2), (_) {
+      if (!_pageController.hasClients) return;
+
+      final page = _pageController.page?.round() ?? 0;
+      final nextPage = page + 1;
+
+      _pageController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
     });
-
-    // Automatic carousel
-    _timer = Timer.periodic(
-      const Duration(seconds: 2),
-      (_) {
-        if (!_pageController.hasClients || products.isEmpty) {
-          return;
-        }
-
-        final nextPage = _currentPage + 1;
-
-        _pageController.animateToPage(
-          nextPage,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-      },
-    );
   }
 
   @override
@@ -80,7 +64,6 @@ class _NewArrivalsState extends State<NewArrivals>
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Heading
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
@@ -105,132 +88,188 @@ class _NewArrivalsState extends State<NewArrivals>
             ],
           ),
         ),
-
         const SizedBox(height: 10),
 
-        // Product card
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Container(
-            height: 325,
-            width: double.infinity,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: AppColors.text,
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Stack(
+        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: _productsStream,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+  debugPrint('Firestore error: ${snapshot.error}');
+
+  return SizedBox(
+    height: 325,
+    child: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: SelectableText(
+          'Firestore error:\n${snapshot.error}',
+          style: const TextStyle(color: Colors.red),
+        ),
+      ),
+    ),
+  );
+}
+
+            if (!snapshot.hasData) {
+              return const SizedBox(
+                height: 325,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            final products = snapshot.data!.docs.where((doc) {
+              final data = doc.data();
+              return data['isNewArrival'] == true;
+            }).toList()
+              ..sort((a, b) {
+                final aOrder = a.data()['sortOrder'] as num? ?? 0;
+                final bOrder = b.data()['sortOrder'] as num? ?? 0;
+                return aOrder.compareTo(bOrder);
+              });
+
+            if (products.isEmpty) {
+              return const SizedBox(
+                height: 325,
+                child: Center(
+                  child: Text(
+                    'No new arrivals yet.',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              );
+            }
+
+            final safePage = _currentPage % products.length;
+
+            return Column(
               children: [
-                // Product image carousel
-                Positioned.fill(
-                  child: PageView.builder(
-                    controller: _pageController,
-
-                    // Extra page = duplicate first image
-                    // for seamless looping.
-                    itemCount: products.length + 1,
-
-                    onPageChanged: (index) {
-                      if (index == products.length) {
-                        setState(() {
-                          _currentPage = 0;
-                        });
-
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (_pageController.hasClients) {
-                            _pageController.jumpToPage(0);
-                          }
-                        });
-                      } else {
-                        setState(() {
-                          _currentPage = index;
-                        });
-                      }
-                    },
-
-                    itemBuilder: (context, index) {
-                      return Image.asset(
-                        products[index % products.length],
-                        fit: BoxFit.cover,
-                        gaplessPlayback: true,
-                      );
-                    },
-                  ),
-                ),
-
-                // NEW badge
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: FadeTransition(
-                    opacity: _newAnimationController,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        '* NEW',
-                        style: TextStyle(
-                          color: AppColors.deepForest,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Wishlist button
-                Positioned(
-                  top: 10,
-                  right: 10,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Container(
-                    width: 45,
-                    height: 45,
+                    height: 325,
+                    width: double.infinity,
+                    clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
-                      color: AppColors.textSecondary,
-                      shape: BoxShape.circle,
+                      color: AppColors.text,
+                      borderRadius: BorderRadius.circular(28),
                     ),
-                    child: IconButton(
-                      icon: Icon(
-                        wishlistedProducts.contains(_currentPage)
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                      ),
-                      color: wishlistedProducts.contains(_currentPage)
-                          ? Colors.red
-                          : AppColors.text,
-                      onPressed: () {
-                        setState(() {
-                          if (wishlistedProducts.contains(_currentPage)) {
-                            wishlistedProducts.remove(_currentPage);
-                          } else {
-                            wishlistedProducts.add(_currentPage);
-                          }
-                        });
-                      },
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: PageView.builder(
+                            controller: _pageController,
+                            itemCount: products.length,
+                            onPageChanged: (index) {
+                              setState(() => _currentPage = index);
+                            },
+                            itemBuilder: (context, index) {
+                              final data = products[index].data();
+                              final imageUrl =
+                                  data['imageUrl'] as String? ?? '';
+
+                              if (imageUrl.isEmpty) {
+                                return const Center(
+                                  child: Icon(
+                                    Icons.image_not_supported,
+                                    color: Colors.white,
+                                    size: 48,
+                                  ),
+                                );
+                              }
+
+                              return Image.network(
+                                imageUrl,
+                                fit: BoxFit.cover,
+                                gaplessPlayback: true,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Center(
+                                    child: Icon(
+                                      Icons.broken_image,
+                                      color: Colors.white,
+                                      size: 48,
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+
+                        Positioned(
+                          top: 12,
+                          left: 12,
+                          child: FadeTransition(
+                            opacity: _newAnimationController,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                '* NEW',
+                                style: TextStyle(
+                                  color: AppColors.deepForest,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        Positioned(
+                          top: 10,
+                          right: 10,
+                          child: Container(
+                            width: 45,
+                            height: 45,
+                            decoration: BoxDecoration(
+                              color: AppColors.textSecondary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
+                              icon: Icon(
+                                wishlistedProducts.contains(
+                                  products[safePage].id,
+                                )
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                              ),
+                              color: wishlistedProducts.contains(
+                                products[safePage].id,
+                              )
+                                  ? Colors.red
+                                  : AppColors.text,
+                              onPressed: () {
+                                setState(() {
+                                  final id = products[safePage].id;
+                                  if (!wishlistedProducts.add(id)) {
+                                    wishlistedProducts.remove(id);
+                                  }
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    products.length,
+                    (index) => _dot(index == safePage),
                   ),
                 ),
               ],
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 15),
-
-        // Page indicators
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            products.length,
-            (index) => _dot(index == _currentPage),
-          ),
+            );
+          },
         ),
       ],
     );
