@@ -2,12 +2,20 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../theme/appcolors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class Trending extends StatelessWidget {
   const Trending({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final productsStream = FirebaseFirestore.instance
+        .collection('catalogProducts')
+        .where('isActive', isEqualTo: true)
+        .where('isFeatured', isEqualTo: true)
+        .snapshots();
+
     return Column(
       children: [
         // Trending heading
@@ -41,52 +49,79 @@ class Trending extends StatelessWidget {
 
         const SizedBox(height: 12),
 
-        // Product grid
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          childAspectRatio: 0.78,
-          children: const [
-            TrendingProductCard(
-              name: 'Oversized T-shirt',
-              price: 'Rs. 999',
-              imageAsset: 'assets/images/Trending_image/Trending_1.jpg',
-            ),
-            TrendingProductCard(
-              name: 'Cargo Pants',
-              price: 'Rs. 1,499',
-              imageAsset: 'assets/images/Trending_image/Trending_2.jpg',
-            ),
-            TrendingProductCard(
-              name: 'Straight Jeans',
-              price: 'Rs. 999',
-              imageAsset: 'assets/images/Trending_image/Trending_3.jpg',
-            ),
-            TrendingProductCard(
-              name: 'Jackets',
-              price: 'Rs. 2,999',
-              imageAsset: 'assets/images/Trending_image/Trending_4.jpg',
-            ),
-            TrendingProductCard(
-              name: 'Boxer-Shirts',
-              price: 'Rs. 999',
-              imageAsset: 'assets/images/Trending_image/Trending_5.jpg',
-            ),
-            TrendingProductCard(
-              name: 'Boxer Fit Jacket',
-              price: 'Rs. 1,999',
-              imageAsset: 'assets/images/Trending_image/Trending_6.jpg',
-            ),
-          ],
+        // Featured products from Firestore
+        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: productsStream,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return const Padding(
+                padding: EdgeInsets.all(20),
+                child: Text(
+                  'Unable to load trending products.',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              );
+            }
+
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.all(30),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+
+            final products = snapshot.data!.docs;
+
+            if (products.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.all(20),
+                child: Center(
+                  child: Text(
+                    'No featured products available.',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: products.length,
+              gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.78,
+              ),
+              itemBuilder: (context, index) {
+                final product = products[index].data();
+
+                return TrendingProductCard(
+                  name: (product['name'] ?? 'Unnamed product')
+                      .toString(),
+                  price:
+                      'Rs. ${(product['price'] ?? 0).toString()}',
+                  imageAsset:
+                      (product['imageUrl'] ?? '').toString(),
+                );
+              },
+            );
+          },
         ),
       ],
     );
   }
 }
+
 
 class TrendingProductCard extends StatefulWidget {
   final String name;
