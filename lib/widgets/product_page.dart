@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../theme/appcolors.dart';
 import 'product_details.dart';
+import '../screens/account/account_action_button.dart';
 import 'dart:math' as math;
 
 class ProductPage extends StatefulWidget {
@@ -19,6 +20,7 @@ class ProductPage extends StatefulWidget {
 class _ProductPageState extends State<ProductPage>
     with SingleTickerProviderStateMixin {
   int _currentPage = 0;
+
   late final AnimationController _borderController;
   late final PageController _pageController;
   late List<String> _images;
@@ -65,154 +67,173 @@ class _ProductPageState extends State<ProductPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.appBackground,
-      body: SafeArea(
+
+      // Fixed Add to Cart footer
+      bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(left: 5, right: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 25),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: AccountActionButton(
+            icon: Icons.shopping_cart_outlined,
+            title: 'Add to Cart',
+            onTap: () {
+              // Cart logic will be connected next.
+            },
+          ),
+        ),
+      ),
 
-              // Back and Add to Cart buttons
-              Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: AppColors.border,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: () {
-                        Navigator.of(context).maybePop();
-                      },
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: AppColors.text,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: AppColors.border,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: () {
-                        // Add to cart logic later.
-                      },
-                      icon: const Icon(
-                        Icons.shopping_cart,
-                        color: AppColors.text,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 5, right: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 25),
 
-              const SizedBox(height: 25),
-
-              // Product image with rotating gradient border
-              AnimatedBuilder(
-                animation: _borderController,
-                builder: (context, child) {
-                  return CustomPaint(
-                    painter: _ProductBorderPainter(
-                      progress: _borderController.value,
-                    ),
-                    child: Container(
-                      width: double.infinity,
-                      height: 250,
-                      margin: const EdgeInsets.all(1.2),
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        color: AppColors.appBackground,
-                        borderRadius: BorderRadius.circular(10.8),
-                      ),
-                      child: _images.isEmpty
-                          ? const Center(
-                              child: Icon(
-                                Icons.image_not_supported_outlined,
-                                color: AppColors.error,
-                                size: 40,
-                              ),
-                            )
-                          : PageView.builder(
-                              controller: _pageController,
-                              itemCount: _images.length,
-                              onPageChanged: (index) {
-                                setState(() {
-                                  _currentPage = index;
-                                });
-                              },
-                              itemBuilder: (context, index) {
-                                return Image.network(
-                                  _images[index],
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (
-                                    context,
-                                    error,
-                                    stackTrace,
-                                  ) {
-                                    return const Center(
-                                      child: Icon(
-                                        Icons.image_not_supported_outlined,
-                                        color: AppColors.error,
-                                        size: 40,
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              // Image page indicators
-              if (_images.length > 1)
+                // Back and Cart icon buttons
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(_images.length, (index) {
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: _currentPage == index ? 18 : 6,
-                      height: 6,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
-                        color: _currentPage == index
-                            ? AppColors.text
-                            : AppColors.border,
+                        border: Border.all(
+                          color: AppColors.border,
+                          width: 1,
+                        ),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                    );
-                  }),
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () {
+                          Navigator.of(context).maybePop();
+                        },
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: AppColors.text,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: AppColors.border,
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () {
+                          // Cart navigation later.
+                        },
+                        icon: const Icon(
+                          Icons.shopping_cart,
+                          color: AppColors.text,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
 
-              const SizedBox(height: 24),
+                const SizedBox(height: 25),
 
-              ProductDetails(
-                product: widget.product,
-              ),
-            ],
+                // Product image with rotating gradient border
+                AnimatedBuilder(
+                  animation: _borderController,
+                  builder: (context, child) {
+                    return CustomPaint(
+                      painter: _ProductBorderPainter(
+                        progress: _borderController.value,
+                      ),
+                      child: Container(
+                        width: double.infinity,
+                        height: 250,
+                        margin: const EdgeInsets.all(2.5),
+                        clipBehavior: Clip.antiAlias,
+                        decoration: BoxDecoration(
+                          color: AppColors.appBackground,
+                          borderRadius: BorderRadius.circular(10.8),
+                        ),
+                        child: _images.isEmpty
+                            ? const Center(
+                                child: Icon(
+                                  Icons.image_not_supported_outlined,
+                                  color: AppColors.error,
+                                  size: 40,
+                                ),
+                              )
+                            : PageView.builder(
+                                controller: _pageController,
+                                itemCount: _images.length,
+                                onPageChanged: (index) {
+                                  setState(() {
+                                    _currentPage = index;
+                                  });
+                                },
+                                itemBuilder: (context, index) {
+                                  return Image.network(
+                                    _images[index],
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (
+                                      context,
+                                      error,
+                                      stackTrace,
+                                    ) {
+                                      return const Center(
+                                        child: Icon(
+                                          Icons.image_not_supported_outlined,
+                                          color: AppColors.error,
+                                          size: 40,
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                      ),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 12),
+
+                // Image page indicators
+                if (_images.length > 1)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(_images.length, (index) {
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: _currentPage == index ? 18 : 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: _currentPage == index
+                              ? AppColors.text
+                              : AppColors.border,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      );
+                    }),
+                  ),
+
+                const SizedBox(height: 24),
+
+                ProductDetails(
+                  product: widget.product,
+                ),
+
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
@@ -229,7 +250,6 @@ class _ProductBorderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     const strokeWidth = 2.5;
-
     final rect = Offset.zero & size;
 
     final paint = Paint()

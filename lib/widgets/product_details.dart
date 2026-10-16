@@ -99,29 +99,47 @@ class _ProductDetailsState extends State<ProductDetails> {
           }).toList(),
         ),
 
-        const SizedBox(height: 50),
+        
+const SizedBox(height: 12),
 
-        // Product Description Heading
-        const Text(
-          'Product Description',
-          style: TextStyle(
-            color: AppColors.text,
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-          ),
+// Product description box
+Container(
+  width: double.infinity,
+  padding: const EdgeInsets.all(16),
+  decoration: BoxDecoration(
+    color: AppColors.appBackground,
+    border: Border.all(
+      color: AppColors.border,
+      width: 1,
+    ),
+    borderRadius: BorderRadius.circular(12),
+  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'PRODUCT DESCRIPTION',
+        style: TextStyle(
+          color: AppColors.text,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.2,
         ),
-
-        const SizedBox(height: 10),
-
-        // Product Description
-        Text(
-          product['description'] ?? '',
-          style: TextStyle(
-            color: AppColors.text.withValues(alpha: 0.7),
-            fontSize: 14,
-            height: 1.5,
-          ),
+      ),
+      const SizedBox(height: 10),
+      Text(
+        (product['description'] ?? 'No description available.')
+            .toString(),
+        style: TextStyle(
+          color: AppColors.text.withValues(alpha: 0.75),
+          fontSize: 14,
+          height: 1.6,
         ),
+      ),
+    ],
+  ),
+),
+
       ],
     );
   }
