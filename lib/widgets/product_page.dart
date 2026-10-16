@@ -1,6 +1,8 @@
+
 import 'package:flutter/material.dart';
 import '../theme/appcolors.dart';
 import 'product_details.dart';
+import 'dart:math' as math;
 
 class ProductPage extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -14,9 +16,10 @@ class ProductPage extends StatefulWidget {
   State<ProductPage> createState() => _ProductPageState();
 }
 
-class _ProductPageState extends State<ProductPage> {
+class _ProductPageState extends State<ProductPage>
+    with SingleTickerProviderStateMixin {
   int _currentPage = 0;
-
+  late final AnimationController _borderController;
   late final PageController _pageController;
   late List<String> _images;
 
@@ -25,6 +28,11 @@ class _ProductPageState extends State<ProductPage> {
     super.initState();
 
     _pageController = PageController();
+
+    _borderController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 6),
+    )..repeat();
 
     final imageUrl = widget.product['imageUrl'];
     final galleryImages = widget.product['galleryImages'];
@@ -43,13 +51,13 @@ class _ProductPageState extends State<ProductPage> {
       }
     }
 
-    // Remove duplicate image URLs.
     _images = _images.toSet().toList();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _borderController.dispose();
     super.dispose();
   }
 
@@ -68,7 +76,6 @@ class _ProductPageState extends State<ProductPage> {
               // Back and Add to Cart buttons
               Row(
                 children: [
-                  // Back button
                   Container(
                     width: 44,
                     height: 44,
@@ -91,10 +98,7 @@ class _ProductPageState extends State<ProductPage> {
                       ),
                     ),
                   ),
-
                   const Spacer(),
-
-                  // Add to Cart button
                   Container(
                     width: 44,
                     height: 44,
@@ -122,60 +126,65 @@ class _ProductPageState extends State<ProductPage> {
 
               const SizedBox(height: 25),
 
-              // Product image carousel
-              Container(
-                width: double.infinity,
-                height: 250,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: AppColors.border,
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(11),
-                  child: _images.isEmpty
-                      ? const Center(
-                          child: Icon(
-                            Icons.image_not_supported_outlined,
-                            color: AppColors.error,
-                            size: 40,
-                          ),
-                        )
-                      : PageView.builder(
-                          controller: _pageController,
-                          itemCount: _images.length,
-                          onPageChanged: (index) {
-                            setState(() {
-                              _currentPage = index;
-                            });
-                          },
-                          itemBuilder: (context, index) {
-                            return Image.network(
-                              _images[index],
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder: (
-                                context,
-                                error,
-                                stackTrace,
-                              ) {
-                                return const Center(
-                                  child: Icon(
-                                    Icons.image_not_supported_outlined,
-                                    color: AppColors.error,
-                                    size: 40,
-                                  ),
+              // Product image with rotating gradient border
+              AnimatedBuilder(
+                animation: _borderController,
+                builder: (context, child) {
+                  return CustomPaint(
+                    painter: _ProductBorderPainter(
+                      progress: _borderController.value,
+                    ),
+                    child: Container(
+                      width: double.infinity,
+                      height: 250,
+                      margin: const EdgeInsets.all(1.2),
+                      clipBehavior: Clip.antiAlias,
+                      decoration: BoxDecoration(
+                        color: AppColors.appBackground,
+                        borderRadius: BorderRadius.circular(10.8),
+                      ),
+                      child: _images.isEmpty
+                          ? const Center(
+                              child: Icon(
+                                Icons.image_not_supported_outlined,
+                                color: AppColors.error,
+                                size: 40,
+                              ),
+                            )
+                          : PageView.builder(
+                              controller: _pageController,
+                              itemCount: _images.length,
+                              onPageChanged: (index) {
+                                setState(() {
+                                  _currentPage = index;
+                                });
+                              },
+                              itemBuilder: (context, index) {
+                                return Image.network(
+                                  _images[index],
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (
+                                    context,
+                                    error,
+                                    stackTrace,
+                                  ) {
+                                    return const Center(
+                                      child: Icon(
+                                        Icons.image_not_supported_outlined,
+                                        color: AppColors.error,
+                                        size: 40,
+                                      ),
+                                    );
+                                  },
                                 );
                               },
-                            );
-                          },
-                        ),
-                ),
+                            ),
+                    ),
+                  );
+                },
               ),
 
-              // Space between image and dots
               const SizedBox(height: 12),
 
               // Image page indicators
@@ -197,15 +206,56 @@ class _ProductPageState extends State<ProductPage> {
                     );
                   }),
                 ),
-                const SizedBox(height: 24),
 
-ProductDetails(
-  product: widget.product,
-),
+              const SizedBox(height: 24),
+
+              ProductDetails(
+                product: widget.product,
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+}
+
+// Rotating gradient border painter
+class _ProductBorderPainter extends CustomPainter {
+  final double progress;
+
+  _ProductBorderPainter({required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const strokeWidth = 2.5;
+
+    final rect = Offset.zero & size;
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..shader = SweepGradient(
+        colors: const [
+          Color(0xFFC5E37A),
+          Color(0xFF5E8E6E),
+          Color(0xFF1E3A2F),
+          Color(0xFF5E8E6E),
+          Color(0xFFC5E37A),
+        ],
+        transform: GradientRotation(progress * 2 * math.pi),
+      ).createShader(rect);
+
+    final borderRect = RRect.fromRectAndRadius(
+      rect.deflate(strokeWidth / 2),
+      const Radius.circular(12),
+    );
+
+    canvas.drawRRect(borderRect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _ProductBorderPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }
