@@ -52,6 +52,32 @@ class _ProductPageState extends State<ProductPage> {
                     ),
           
                   ),
+
+                  const Spacer(),
+                  //Add to cart Button
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: AppColors.border,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () {
+                 //button logic
+                      },
+                      icon: const Icon(
+                        Icons.shopping_cart,
+                        color: AppColors.text,
+                        size: 20,
+                      ),
+                    ),
+          
+                  ),
               
                 ],
               ),
