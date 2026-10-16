@@ -1,10 +1,10 @@
-
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 import '../theme/appcolors.dart';
+import 'product_page.dart';
 
 class NewArrivals extends StatefulWidget {
   const NewArrivals({super.key});
@@ -42,10 +42,8 @@ class _NewArrivalsState extends State<NewArrivals>
       if (!_pageController.hasClients) return;
 
       final page = _pageController.page?.round() ?? 0;
-      final nextPage = page + 1;
-
       _pageController.animateToPage(
-        nextPage,
+        page + 1,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
@@ -58,6 +56,15 @@ class _NewArrivalsState extends State<NewArrivals>
     _pageController.dispose();
     _newAnimationController.dispose();
     super.dispose();
+  }
+
+  void _openProduct(Map<String, dynamic> product) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (context) => ProductPage(product: product),
+      ),
+    );
   }
 
   @override
@@ -89,26 +96,24 @@ class _NewArrivalsState extends State<NewArrivals>
           ),
         ),
         const SizedBox(height: 10),
-
         StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: _productsStream,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-  debugPrint('Firestore error: ${snapshot.error}');
-
-  return SizedBox(
-    height: 325,
-    child: Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: SelectableText(
-          'Firestore error:\n${snapshot.error}',
-          style: const TextStyle(color: Colors.red),
-        ),
-      ),
-    ),
-  );
-}
+              debugPrint('Firestore error: ${snapshot.error}');
+              return SizedBox(
+                height: 325,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SelectableText(
+                      'Firestore error:\n${snapshot.error}',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ),
+              );
+            }
 
             if (!snapshot.hasData) {
               return const SizedBox(
@@ -118,8 +123,7 @@ class _NewArrivalsState extends State<NewArrivals>
             }
 
             final products = snapshot.data!.docs.where((doc) {
-              final data = doc.data();
-              return data['isNewArrival'] == true;
+              return doc.data()['isNewArrival'] == true;
             }).toList()
               ..sort((a, b) {
                 final aOrder = a.data()['sortOrder'] as num? ?? 0;
@@ -177,24 +181,26 @@ class _NewArrivalsState extends State<NewArrivals>
                                 );
                               }
 
-                              return Image.network(
-                                imageUrl,
-                                fit: BoxFit.cover,
-                                gaplessPlayback: true,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Center(
-                                    child: Icon(
-                                      Icons.broken_image,
-                                      color: Colors.white,
-                                      size: 48,
-                                    ),
-                                  );
-                                },
+                              return GestureDetector(
+                                onTap: () => _openProduct(data),
+                                child: Image.network(
+                                  imageUrl,
+                                  fit: BoxFit.cover,
+                                  gaplessPlayback: true,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Center(
+                                      child: Icon(
+                                        Icons.broken_image,
+                                        color: Colors.white,
+                                        size: 48,
+                                      ),
+                                    );
+                                  },
+                                ),
                               );
                             },
                           ),
                         ),
-
                         Positioned(
                           top: 12,
                           left: 12,
@@ -220,7 +226,6 @@ class _NewArrivalsState extends State<NewArrivals>
                             ),
                           ),
                         ),
-
                         Positioned(
                           top: 10,
                           right: 10,
