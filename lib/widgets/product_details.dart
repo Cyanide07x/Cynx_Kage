@@ -1,12 +1,15 @@
+
 import 'package:flutter/material.dart';
 import '../theme/appcolors.dart';
 
 class ProductDetails extends StatefulWidget {
   final Map<String, dynamic> product;
+  final ValueChanged<String?> onSizeChanged;
 
   const ProductDetails({
     super.key,
     required this.product,
+    required this.onSizeChanged,
   });
 
   @override
@@ -25,7 +28,7 @@ class _ProductDetailsState extends State<ProductDetails> {
       children: [
         // Product Name
         Text(
-          product['name'] ?? 'Product Name',
+          product['name']?.toString() ?? 'Product Name',
           style: const TextStyle(
             color: AppColors.text,
             fontSize: 22,
@@ -71,6 +74,9 @@ class _ProductDetailsState extends State<ProductDetails> {
                 setState(() {
                   selectedSize = sizeValue;
                 });
+
+                // Send the selected size to ProductPage.
+                widget.onSizeChanged(sizeValue);
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
@@ -99,47 +105,46 @@ class _ProductDetailsState extends State<ProductDetails> {
           }).toList(),
         ),
 
-        
-const SizedBox(height: 12),
+        const SizedBox(height: 12),
 
-// Product description box
-Container(
-  width: double.infinity,
-  padding: const EdgeInsets.all(16),
-  decoration: BoxDecoration(
-    color: AppColors.appBackground,
-    border: Border.all(
-      color: AppColors.border,
-      width: 1,
-    ),
-    borderRadius: BorderRadius.circular(12),
-  ),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text(
-        'PRODUCT DESCRIPTION',
-        style: TextStyle(
-          color: AppColors.text,
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 1.2,
+        // Product Description Box
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.appBackground,
+            border: Border.all(
+              color: AppColors.border,
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'PRODUCT DESCRIPTION',
+                style: TextStyle(
+                  color: AppColors.text,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                (product['description'] ??
+                        'No description available.')
+                    .toString(),
+                style: TextStyle(
+                  color: AppColors.text.withValues(alpha: 0.75),
+                  fontSize: 14,
+                  height: 1.6,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      const SizedBox(height: 10),
-      Text(
-        (product['description'] ?? 'No description available.')
-            .toString(),
-        style: TextStyle(
-          color: AppColors.text.withValues(alpha: 0.75),
-          fontSize: 14,
-          height: 1.6,
-        ),
-      ),
-    ],
-  ),
-),
-
       ],
     );
   }

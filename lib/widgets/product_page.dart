@@ -1,6 +1,10 @@
+
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+
 import '../screens/cart/cart_screen.dart';
+import '../screens/cart/cart_controller.dart';
+import '../screens/cart/cart_item.dart';
 import '../theme/appcolors.dart';
 import '../screens/account/account_action_button.dart';
 import 'product_details.dart';
@@ -19,19 +23,12 @@ class ProductPage extends StatefulWidget {
 
 class _ProductPageState extends State<ProductPage>
     with SingleTickerProviderStateMixin {
-  // ============================================================
-  // STATE
-  // ============================================================
-
   int _currentPage = 0;
+  String? _selectedSize;
 
   late final AnimationController _borderController;
   late final PageController _pageController;
   late final List<String> _images;
-
-  // ============================================================
-  // UI
-  // ============================================================
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +49,14 @@ class _ProductPageState extends State<ProductPage>
                 const SizedBox(height: 12),
                 _buildImageIndicators(),
                 const SizedBox(height: 24),
-                ProductDetails(product: widget.product),
+                ProductDetails(
+                  product: widget.product,
+                  onSizeChanged: (size) {
+                    setState(() {
+                      _selectedSize = size;
+                    });
+                  },
+                ),
                 const SizedBox(height: 20),
               ],
             ),
@@ -62,9 +66,7 @@ class _ProductPageState extends State<ProductPage>
     );
   }
 
-  // ============================================================
   // HEADER
-  // ============================================================
 
   Widget _buildHeader() {
     return Row(
@@ -83,7 +85,6 @@ class _ProductPageState extends State<ProductPage>
                 builder: (context) => const CartScreen(),
               ),
             );
-            // Cart navigation will be added later.
           },
         ),
       ],
@@ -116,9 +117,7 @@ class _ProductPageState extends State<ProductPage>
     );
   }
 
-  // ============================================================
   // PRODUCT IMAGE CAROUSEL
-  // ============================================================
 
   Widget _buildProductImage() {
     return AnimatedBuilder(
@@ -179,9 +178,7 @@ class _ProductPageState extends State<ProductPage>
     );
   }
 
-  // ============================================================
   // IMAGE PAGE INDICATORS
-  // ============================================================
 
   Widget _buildImageIndicators() {
     if (_images.length <= 1) {
@@ -207,9 +204,7 @@ class _ProductPageState extends State<ProductPage>
     );
   }
 
-  // ============================================================
   // FULL-SCREEN IMAGE VIEWER
-  // ============================================================
 
   void _openFullScreenImage(int initialIndex) {
     Navigator.of(context).push(
@@ -233,9 +228,50 @@ class _ProductPageState extends State<ProductPage>
     );
   }
 
-  // ============================================================
-  // FIXED ADD TO CART FOOTER
-  // ============================================================
+  // ADD TO CART
+
+  void _addToCart() {
+    if (_selectedSize == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a size first.'),
+        ),
+      );
+      return;
+    }
+
+    final product = widget.product;
+    final rawPrice = product['price'];
+
+    final double price = rawPrice is num
+        ? rawPrice.toDouble()
+        : double.tryParse(rawPrice?.toString() ?? '') ?? 0;
+
+    final productId = (product['id'] ??
+            product['slug'] ??
+            product['name'] ??
+            '')
+        .toString();
+
+    final imageUrl = (product['imageUrl'] ?? '').toString();
+
+    CartController.instance.addItem(
+      CartItem(
+        productId: productId,
+        name: (product['name'] ?? 'Product').toString(),
+        imageUrl: imageUrl,
+        price: price,
+        size: _selectedSize!,
+        color: (product['color'] ?? 'Default').toString(),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Product added to cart!'),
+      ),
+    );
+  }
 
   Widget _buildCartFooter() {
     return SafeArea(
@@ -244,17 +280,13 @@ class _ProductPageState extends State<ProductPage>
         child: AccountActionButton(
           icon: Icons.shopping_cart_outlined,
           title: 'Add to Cart',
-          onTap: () {
-            // Cart logic will be connected later.
-          },
+          onTap: _addToCart,
         ),
       ),
     );
   }
 
-  // ============================================================
-  // INITIALIZATION LOGIC
-  // ============================================================
+  // INITIALIZATION
 
   @override
   void initState() {
@@ -293,10 +325,6 @@ class _ProductPageState extends State<ProductPage>
     _images = images.toSet().toList();
   }
 
-  // ============================================================
-  // CLEANUP
-  // ============================================================
-
   @override
   void dispose() {
     _pageController.dispose();
@@ -305,9 +333,7 @@ class _ProductPageState extends State<ProductPage>
   }
 }
 
-// ================================================================
 // FULL-SCREEN IMAGE VIEWER
-// ================================================================
 
 class _FullScreenImageViewer extends StatefulWidget {
   final List<String> images;
@@ -336,7 +362,6 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
     );
   }
 
-  // UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -418,7 +443,6 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
     );
   }
 
-  // Cleanup
   @override
   void dispose() {
     _controller.dispose();
@@ -426,9 +450,7 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
   }
 }
 
-// ================================================================
-// CUSTOM PAINTER: ROTATING GREEN GRADIENT BORDER
-// ================================================================
+// ROTATING GREEN GRADIENT BORDER
 
 class _ProductBorderPainter extends CustomPainter {
   final double progress;

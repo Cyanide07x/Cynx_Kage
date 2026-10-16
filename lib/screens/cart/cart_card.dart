@@ -40,7 +40,7 @@ class CartCard extends StatelessWidget {
                       color: AppColors.textSecondary,
                       size: 30,
                     )
-                  : Image.asset(
+                  : Image.network(
                       item.imageUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {

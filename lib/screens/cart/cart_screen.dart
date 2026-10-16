@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/appcolors.dart';
 import 'cart_item.dart';
 import 'cart_card.dart';
+import 'cart_controller.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -13,35 +14,7 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   // Cart starts empty until products are added.
-  final List<CartItem> _cartItems = [
-  CartItem(
-    productId: 'test-001',
-    name: 'Oversized Graphic Tee',
-    imageUrl: 'assets/images/Trending_image/Trending_2.jpg',
-    price: 799,
-    size: 'L',
-    color: 'Black',
-    quantity: 1,
-  ),
-  CartItem(
-    productId: 'test-002',
-    name: 'Essential Hoodie',
-    imageUrl: 'assets/images/Trending_image/Trending_3.jpg',
-    price: 1299,
-    size: 'M',
-    color: 'Bone',
-    quantity: 1,
-  ),
-  CartItem(
-    productId: 'test-003',
-    name: 'Cargo Pants',
-    imageUrl: 'assets/images/Trending_image/Trending_6.jpg',
-    price: 999,
-    size: '32',
-    color: 'Olive',
-    quantity: 1,
-  ),
-];
+List<CartItem> get _cartItems => CartController.instance.items;
 
   static const double _freeDeliveryThreshold = 1700;
   static const double _deliveryCharge = 99;
