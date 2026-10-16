@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/appcolors.dart';
+import 'product_details.dart';
 
 class ProductPage extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -196,6 +197,11 @@ class _ProductPageState extends State<ProductPage> {
                     );
                   }),
                 ),
+                const SizedBox(height: 24),
+
+ProductDetails(
+  product: widget.product,
+),
             ],
           ),
         ),
