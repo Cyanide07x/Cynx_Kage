@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'setting_screen.dart';
 
 import '../../theme/appcolors.dart';
 import '../login/login_screen.dart';
@@ -571,11 +572,12 @@ class _AccountScreenState extends State<AccountScreen> {
                 icon: Icons.settings_outlined,
                 title: 'Settings',
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Settings clicked!'),
-                    ),
-                  );
+                  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => const SettingScreen(),
+    ),
+  );
                 },
               ),
 
