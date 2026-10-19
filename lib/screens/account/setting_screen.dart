@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/appcolors.dart';
 import 'account_action_button.dart';
 
+
 class SettingScreen extends StatelessWidget {
   const SettingScreen({super.key});
 
@@ -12,7 +13,7 @@ class SettingScreen extends StatelessWidget {
       backgroundColor: AppColors.appBackground,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.only(left: 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

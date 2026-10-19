@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'setting_screen.dart';
+import 'support_screen.dart';
 
 import '../../theme/appcolors.dart';
 import '../login/login_screen.dart';
@@ -559,11 +560,12 @@ class _AccountScreenState extends State<AccountScreen> {
                 icon: Icons.headset_mic_outlined,
                 title: 'Help & Support',
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Help & Support clicked!'),
-                    ),
+                  Navigator.push(context, 
+                  MaterialPageRoute(
+                    builder: (context) => const SupportScreen(),
+                  ),
                   );
+                  
                 },
               ),
               const SizedBox(height: 12),
