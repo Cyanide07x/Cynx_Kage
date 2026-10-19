@@ -1,12 +1,31 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// widgets/coupon_card.dart
+// Coupon tile shown in the Offers screen.
+// ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/appcolors.dart';
 
+/// Displays a promotional coupon with a discount amount, description, coupon
+/// code, and a "Copy" button that copies [code] to the clipboard.
+///
+/// ```dart
+/// CouponCard(
+///   discount: '20%',
+///   description: 'On your first order',
+///   code: 'FIRST20',
+/// )
+/// ```
 class CouponCard extends StatelessWidget {
+  /// The discount value displayed prominently (e.g. '20%', 'B2G1').
   final String discount;
+
+  /// A short description of the coupon's terms.
   final String description;
+
+  /// The coupon code that is copied to the clipboard on tap.
   final String code;
 
   const CouponCard({
@@ -16,6 +35,9 @@ class CouponCard extends StatelessWidget {
     required this.code,
   });
 
+  // ── Actions ────────────────────────────────────────────────────────────
+
+  /// Copies [code] to the system clipboard and shows a confirmation [SnackBar].
   Future<void> _copyCoupon(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: code));
 
@@ -30,6 +52,8 @@ class CouponCard extends StatelessWidget {
       ),
     );
   }
+
+  // ── Build ─────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +70,7 @@ class CouponCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Discount
+          // ── Discount amount ───────────────────────────────────────────
           SizedBox(
             width: 72,
             child: Column(
@@ -72,7 +96,7 @@ class CouponCard extends StatelessWidget {
             ),
           ),
 
-          // Divider
+          // ── Vertical divider ──────────────────────────────────────────
           Container(
             width: 1,
             height: 48,
@@ -80,7 +104,7 @@ class CouponCard extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 10),
           ),
 
-          // Coupon details
+          // ── Description and code ─────────────────────────────────────
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,14 +132,12 @@ class CouponCard extends StatelessWidget {
 
           const SizedBox(width: 8),
 
-          // Copy button
+          // ── Copy button ─────────────────────────────────────────────
           OutlinedButton(
             onPressed: () => _copyCoupon(context),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.text,
-              side: const BorderSide(
-                color: AppColors.border,
-              ),
+              side: const BorderSide(color: AppColors.border),
               padding: const EdgeInsets.symmetric(
                 horizontal: 14,
                 vertical: 9,

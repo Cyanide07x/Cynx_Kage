@@ -1,10 +1,24 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// screens/account/account_action_button.dart
+// Reusable tappable list row used in the Account screen.
+// ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
 import '../../theme/appcolors.dart';
 
+/// A full-width tappable tile that combines an icon, a label, and a trailing
+/// chevron arrow - used for account actions such as "My Orders" or "Log out".
+///
+/// The "Log out" tile automatically renders its label in [AppColors.error]
+/// (red) to signal a destructive action.
 class AccountActionButton extends StatelessWidget {
+  /// Material icon shown on the left side of the tile.
   final IconData icon;
+
+  /// Text label displayed in the centre of the tile.
   final String title;
+
+  /// Callback invoked when the tile is tapped.
   final VoidCallback onTap;
 
   const AccountActionButton({
@@ -35,7 +49,7 @@ class AccountActionButton extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Custom icon container
+            // ── Icon container ───────────────────────────────────────────
             Container(
               width: 44,
               height: 44,
@@ -56,19 +70,22 @@ class AccountActionButton extends StatelessWidget {
 
             const SizedBox(width: 14),
 
+            // ── Label ──────────────────────────────────────────────────
             Expanded(
-  child: Text(
-    title,
-    style: TextStyle(
-      color: title == 'Log out'
-          ? AppColors.error
-          : AppColors.text,
-      fontSize: 14,
-      fontWeight: FontWeight.w600,
-    ),
-  ),
-),
+              child: Text(
+                title,
+                style: TextStyle(
+                  // "Log out" is shown in red to indicate a destructive action.
+                  color: title == 'Log out'
+                      ? AppColors.error
+                      : AppColors.text,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
 
+            // ── Trailing chevron ────────────────────────────────────────
             const Icon(
               Icons.arrow_forward_ios_rounded,
               color: AppColors.textSecondary,

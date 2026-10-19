@@ -1,7 +1,19 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// screens/wishlist/wishlist_screen.dart
+// Displays the user's saved (wishlisted) products in a 2-column grid.
+//
+// TODO: Replace the hardcoded [wishlistItems] list with a real persistent
+// store (e.g. Firestore user document or shared_preferences).
+// ─────────────────────────────────────────────────────────────────────────────
+
 import 'package:flutter/material.dart';
 import '../../theme/appcolors.dart';
-import '../../Widgets/trending.dart';
+import '../../widgets/trending.dart';
 
+/// Wishlist screen showing products the user has saved for later.
+///
+/// Products are rendered using [TrendingProductCard] in a 2-column
+/// [GridView]. The back button and a share icon are shown in the header.
 class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
 
@@ -10,12 +22,36 @@ class WishlistScreen extends StatefulWidget {
 }
 
 class _WishlistScreenState extends State<WishlistScreen> {
+  // ── Data ───────────────────────────────────────────────────────────────
+
+  /// Placeholder wishlist data.
+  ///
+  /// Each map contains 'name', 'price', and 'image' (local asset path).
+  /// Replace with a dynamic data source when the backend is integrated.
   final List<Map<String, String>> wishlistItems = [
-    {'name': 'Oversized T-shirt', 'price': 'Rs. 999', 'image': 'assets/images/Trending_image/Trending_3.jpg'},
-    {'name': 'Cargo Pants', 'price': 'Rs. 1,499', 'image': 'assets/images/Trending_image/Trending_4.jpg'},
-    {'name': 'Straight Jeans', 'price': 'Rs. 999', 'image': 'assets/images/Trending_image/Trending_5.jpg'},
-    {'name': 'Jackets', 'price': 'Rs. 2,999', 'image': 'assets/images/Trending_image/Trending_6.jpg'},
+    {
+      'name': 'Oversized T-shirt',
+      'price': 'Rs. 999',
+      'image': 'assets/images/Trending_image/Trending_3.jpg',
+    },
+    {
+      'name': 'Cargo Pants',
+      'price': 'Rs. 1,499',
+      'image': 'assets/images/Trending_image/Trending_4.jpg',
+    },
+    {
+      'name': 'Straight Jeans',
+      'price': 'Rs. 999',
+      'image': 'assets/images/Trending_image/Trending_5.jpg',
+    },
+    {
+      'name': 'Jackets',
+      'price': 'Rs. 2,999',
+      'image': 'assets/images/Trending_image/Trending_6.jpg',
+    },
   ];
+
+  // ── Build ─────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +65,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
             children: [
               const SizedBox(height: 25),
 
-              // Wishlist header
+              // ── Header ────────────────────────────────────────────
               Row(
                 children: [
                   // Back button
@@ -45,9 +81,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     ),
                     child: IconButton(
                       padding: EdgeInsets.zero,
-                      onPressed: () {
-                        Navigator.of(context).maybePop();
-                      },
+                      onPressed: () => Navigator.of(context).maybePop(),
                       icon: const Icon(
                         Icons.arrow_back,
                         color: AppColors.text,
@@ -58,7 +92,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
 
                   const SizedBox(width: 20),
 
-                  // Wishlist title and count
+                  // Title and item count
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,7 +117,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     ),
                   ),
 
-                  // Share button
+                  // Share button (placeholder - connect action when ready)
                   Container(
                     width: 44,
                     height: 44,
@@ -109,13 +143,10 @@ class _WishlistScreenState extends State<WishlistScreen> {
 
               const SizedBox(height: 25),
 
-              // Wishlist products grid
+              // ── Product grid ────────────────────────────────────────
               Expanded(
                 child: GridView.builder(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 20,
-                  ),
+                  padding: const EdgeInsets.only(top: 10, bottom: 20),
                   itemCount: wishlistItems.length,
                   gridDelegate:
                       const SliverGridDelegateWithFixedCrossAxisCount(
@@ -128,10 +159,10 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     final product = wishlistItems[index];
 
                     return TrendingProductCard(
-  name: product['name']!,
-  price: product['price']!,
-  imageAsset: product['image']!,
-);
+                      name: product['name']!,
+                      price: product['price']!,
+                      imageAsset: product['image']!,
+                    );
                   },
                 ),
               ),
