@@ -69,7 +69,7 @@ List<CartItem> get _cartItems => CartController.instance.items;
             // Existing header
             Padding(
               padding: const EdgeInsets.only(
-                left: 5,
+                left: 20,
                 right: 20,
                 top: 25,
               ),

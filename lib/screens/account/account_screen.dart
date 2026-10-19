@@ -334,7 +334,7 @@ class _AccountScreenState extends State<AccountScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(
-            left: 5,
+            left: 20,
             right: 20,
             bottom: 24,
           ),
