@@ -1,13 +1,5 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// screens/wishlist/wishlist_screen.dart
-// Displays the user's saved (wishlisted) products in a 2-column grid.
-//
-// TODO: Replace the hardcoded [wishlistItems] list with a real persistent
-// store (e.g. Firestore user document or shared_preferences).
-// ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
-import '../../theme/appcolors.dart';
 import '../../widgets/trending.dart';
 
 /// Wishlist screen showing products the user has saved for later.
@@ -22,12 +14,7 @@ class WishlistScreen extends StatefulWidget {
 }
 
 class _WishlistScreenState extends State<WishlistScreen> {
-  // ── Data ───────────────────────────────────────────────────────────────
-
-  /// Placeholder wishlist data.
-  ///
-  /// Each map contains 'name', 'price', and 'image' (local asset path).
-  /// Replace with a dynamic data source when the backend is integrated.
+  // Placeholder wishlist data.
   final List<Map<String, String>> wishlistItems = [
     {
       'name': 'Oversized T-shirt',
@@ -51,12 +38,13 @@ class _WishlistScreenState extends State<WishlistScreen> {
     },
   ];
 
-  // ── Build ─────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.appBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20),
@@ -65,7 +53,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
             children: [
               const SizedBox(height: 25),
 
-              // ── Header ────────────────────────────────────────────
+              // Header
               Row(
                 children: [
                   // Back button
@@ -74,7 +62,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     height: 44,
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: AppColors.border,
+                        color: colors.outline,
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(10),
@@ -82,9 +70,9 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     child: IconButton(
                       padding: EdgeInsets.zero,
                       onPressed: () => Navigator.of(context).maybePop(),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.arrow_back,
-                        color: AppColors.text,
+                        color: colors.onSurface,
                         size: 20,
                       ),
                     ),
@@ -97,10 +85,10 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Wishlist',
                           style: TextStyle(
-                            color: AppColors.text,
+                            color: colors.onSurface,
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
@@ -108,8 +96,8 @@ class _WishlistScreenState extends State<WishlistScreen> {
                         const SizedBox(height: 4),
                         Text(
                           '${wishlistItems.length} saved pieces',
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
+                          style: TextStyle(
+                            color: colors.onSurfaceVariant,
                             fontSize: 14,
                           ),
                         ),
@@ -117,13 +105,13 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     ),
                   ),
 
-                  // Share button (placeholder - connect action when ready)
+                  // Share button
                   Container(
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: AppColors.border,
+                        color: colors.outline,
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(10),
@@ -131,9 +119,9 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     child: IconButton(
                       padding: EdgeInsets.zero,
                       onPressed: () {},
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.ios_share,
-                        color: AppColors.text,
+                        color: colors.onSurface,
                         size: 20,
                       ),
                     ),
@@ -143,7 +131,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
 
               const SizedBox(height: 25),
 
-              // ── Product grid ────────────────────────────────────────
+              // Product grid
               Expanded(
                 child: GridView.builder(
                   padding: const EdgeInsets.only(top: 10, bottom: 20),

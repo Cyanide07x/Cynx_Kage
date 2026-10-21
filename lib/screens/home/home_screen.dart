@@ -1,8 +1,10 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../theme/appcolors.dart';
+import '../../theme/theme_controller.dart';
+import '../../theme/apptheme.dart';
 import '../../widgets/header.dart';
 import '../../widgets/searchbar.dart';
 import '../../widgets/new_arrivals.dart';
@@ -26,77 +28,120 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String selectedCategory = 'All';
 
+  late Future<String> _heroSvgFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _heroSvgFuture = rootBundle.loadString(
+      'assets/images/Herotag.svg',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            if (widget.showNavigation) const Header(),
+    return AnimatedBuilder(
+      animation: themeController,
+      builder: (context, _) {
+        final isCynx =
+            themeController.selectedTheme == CynxThemeMode.cynx;
 
-            Expanded(
-              child: CustomScrollView(
-                slivers: [
-                  // Hero section
-                  SliverToBoxAdapter(
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 5),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 15),
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: 70,
-                            child: SvgPicture.asset(
-                              'assets/images/Herotag.svg',
-                              fit: BoxFit.contain,
-                              alignment: Alignment.centerLeft,
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: SafeArea(
+            child: Column(
+              children: [
+                if (widget.showNavigation) const Header(),
+
+                Expanded(
+                  child: CustomScrollView(
+                    slivers: [
+                      // Hero section
+                      SliverToBoxAdapter(
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 5),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 15),
+                              child: SizedBox(
+                                width: double.infinity,
+                                height: 70,
+                                child: FutureBuilder<String>(
+                                  future: _heroSvgFuture,
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasError) {
+                                      return const SizedBox.shrink();
+                                    }
+
+                                    if (!snapshot.hasData) {
+                                      return const SizedBox.shrink();
+                                    }
+
+                                    final themedSvg = snapshot.data!
+                                        .replaceAll(
+                                          '#BBD58E',
+                                          isCynx
+                                              ? '#E50046'
+                                              : '#BBD58E',
+                                        )
+                                        .replaceAll(
+                                          '#bbd58e',
+                                          isCynx
+                                              ? '#FF2D9A'
+                                              : '#bbd58e',
+                                        );
+
+                                    return SvgPicture.string(
+                                      themedSvg,
+                                      fit: BoxFit.contain,
+                                      alignment: Alignment.centerLeft,
+                                    );
+                                  },
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: 15),
+                          ],
                         ),
-                        const SizedBox(height: 15),
-                      ],
-                    ),
-                  ),
+                      ),
 
-                  // Sticky Search Bar + Categories
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _StickySearchDelegate(
-                      selectedCategory: selectedCategory,
-                      onCategorySelected: (category) {
-                        setState(() {
-                          selectedCategory = category;
-                        });
-                      },
-                    ),
-                  ),
+                      // Sticky Search Bar + Categories
+                      SliverPersistentHeader(
+                        pinned: true,
+                        delegate: _StickySearchDelegate(
+                          selectedCategory: selectedCategory,
+                          onCategorySelected: (category) {
+                            setState(() {
+                              selectedCategory = category;
+                            });
+                          },
+                        ),
+                      ),
 
-                  // Body content
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 25),
-                      child: _buildCategoryBody(),
-                    ),
+                      // Body content
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 25),
+                          child: _buildCategoryBody(),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: null,
+          ),
+          bottomNavigationBar: null,
+        );
+      },
     );
   }
 
   Widget _buildCategoryBody() {
-    // Men's Collection
     if (selectedCategory == 'Men') {
       return const MenScreen();
     }
 
-    // Women's Collection
     if (selectedCategory == 'Women') {
       return const WomenScreen();
     }
@@ -105,7 +150,6 @@ class _HomeScreenState extends State<HomeScreen> {
       return const UnisexScreen();
     }
 
-    // Original homepage
     if (selectedCategory == 'All') {
       return const Column(
         children: [
@@ -117,7 +161,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Other categories
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: 20,

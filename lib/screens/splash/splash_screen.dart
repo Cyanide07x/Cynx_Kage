@@ -1,13 +1,5 @@
-import 'package:flutter/material.dart';
 
-class KageColors {
-  static const background = Color(0xFF0B0B0B);
-  static const surface = Color(0xFF171717);
-  static const border = Color(0xFFC5E37A);
-  static const accent = Color(0xFFF2F2F2);
-  static const text = Color(0xFFFAFAFA);
-  static const dim = Color(0xFFA3A3A3);
-}
+import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
   final VoidCallback? onFinished;
@@ -71,7 +63,11 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Widget _ring(double startSec, double endSec) {
+  Widget _ring(
+    double startSec,
+    double endSec,
+    Color borderColor,
+  ) {
     final a = _window(startSec, endSec);
 
     return AnimatedBuilder(
@@ -86,7 +82,7 @@ class _SplashScreenState extends State<SplashScreen>
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: KageColors.border,
+                color: borderColor,
                 width: 2,
               ),
             ),
@@ -102,6 +98,7 @@ class _SplashScreenState extends State<SplashScreen>
     Color color,
     double maxHeight, {
     bool outlined = false,
+    required Color borderColor,
   }) {
     final start = 0.2 + 0.15 * i;
     final a = _window(
@@ -123,7 +120,7 @@ class _SplashScreenState extends State<SplashScreen>
         decoration: BoxDecoration(
           color: color,
           border: outlined
-              ? Border.all(color: KageColors.border, width: 2)
+              ? Border.all(color: borderColor, width: 2)
               : null,
           borderRadius: const BorderRadius.vertical(
             top: Radius.circular(12),
@@ -135,19 +132,22 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final background = Theme.of(context).scaffoldBackgroundColor;
+
     final mark = _window(0.3, 1.3);
     final name = _window(0.9, 1.9);
     final tagline = _window(1.4, 2.4);
 
     return Scaffold(
-      backgroundColor: KageColors.background,
+      backgroundColor: background,
       body: SizedBox.expand(
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Expanding monochrome rings
-            _ring(0.2, 2.6),
-            _ring(0.6, 3.0),
+            // Expanding theme-colored rings
+            _ring(0.2, 2.6, colors.primary),
+            _ring(0.6, 3.0, colors.secondary),
 
             // Mark, name, and tagline
             Column(
@@ -155,28 +155,28 @@ class _SplashScreenState extends State<SplashScreen>
               children: [
                 _rise(
                   mark,
-                  const Text(
+                  Text(
                     'CK',
                     style: TextStyle(
                       fontSize: 96,
                       height: 1,
                       fontWeight: FontWeight.w800,
-                      color: KageColors.accent,
+                      color: colors.primary,
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
                 _rise(
                   name,
-                  const Padding(
-                    padding: EdgeInsets.only(left: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
                     child: Text(
                       'CYNX KAGE',
                       style: TextStyle(
                         fontSize: 26,
                         letterSpacing: 8,
                         fontWeight: FontWeight.w800,
-                        color: KageColors.text,
+                        color: colors.onSurface,
                       ),
                     ),
                   ),
@@ -184,18 +184,18 @@ class _SplashScreenState extends State<SplashScreen>
                 const SizedBox(height: 6),
                 _rise(
                   tagline,
-                  const Text(
+                  Text(
                     'Gear for the quiet trade',
                     style: TextStyle(
                       fontSize: 16,
-                      color: KageColors.dim,
+                      color: colors.onSurfaceVariant,
                     ),
                   ),
                 ),
               ],
             ),
 
-            // Monochrome decorative stalks
+            // Decorative theme-colored stalks
             Positioned(
               left: 0,
               right: 0,
@@ -210,17 +210,45 @@ class _SplashScreenState extends State<SplashScreen>
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       _stalk(
-                        0, 0.55, KageColors.surface, maxH,
+                        0,
+                        0.55,
+                        colors.surface,
+                        maxH,
                         outlined: true,
+                        borderColor: colors.primary,
                       ),
                       const SizedBox(width: 12),
-                      _stalk(1, 0.90, KageColors.border, maxH),
+                      _stalk(
+                        1,
+                        0.90,
+                        colors.primary,
+                        maxH,
+                        borderColor: colors.primary,
+                      ),
                       const SizedBox(width: 12),
-                      _stalk(2, 0.70, KageColors.surface, maxH),
+                      _stalk(
+                        2,
+                        0.70,
+                        colors.surface,
+                        maxH,
+                        borderColor: colors.primary,
+                      ),
                       const SizedBox(width: 12),
-                      _stalk(3, 1.00, KageColors.accent, maxH),
+                      _stalk(
+                        3,
+                        1.00,
+                        colors.onSurface,
+                        maxH,
+                        borderColor: colors.primary,
+                      ),
                       const SizedBox(width: 12),
-                      _stalk(4, 0.62, KageColors.border, maxH),
+                      _stalk(
+                        4,
+                        0.62,
+                        colors.primary,
+                        maxH,
+                        borderColor: colors.primary,
+                      ),
                     ],
                   );
                 },
@@ -237,9 +265,9 @@ class _SplashScreenState extends State<SplashScreen>
                     child: OutlinedButton(
                       onPressed: _play,
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: KageColors.accent,
-                        side: const BorderSide(
-                          color: KageColors.border,
+                        foregroundColor: colors.primary,
+                        side: BorderSide(
+                          color: colors.primary,
                           width: 1.5,
                         ),
                         minimumSize: const Size(0, 44),

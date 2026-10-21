@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../screens/cart/cart_screen.dart';
 import '../screens/cart/cart_controller.dart';
 import '../screens/cart/cart_item.dart';
-import '../theme/appcolors.dart';
 import '../screens/account/account_action_button.dart';
 import 'product_details.dart';
 
@@ -32,8 +31,10 @@ class _ProductPageState extends State<ProductPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: AppColors.appBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       bottomNavigationBar: _buildCartFooter(),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -95,12 +96,14 @@ class _ProductPageState extends State<ProductPage>
     required IconData icon,
     required VoidCallback onTap,
   }) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       width: 44,
       height: 44,
       decoration: BoxDecoration(
         border: Border.all(
-          color: AppColors.border,
+          color: colors.outline,
           width: 1,
         ),
         borderRadius: BorderRadius.circular(10),
@@ -110,7 +113,7 @@ class _ProductPageState extends State<ProductPage>
         onPressed: onTap,
         icon: Icon(
           icon,
-          color: AppColors.text,
+          color: colors.onSurface,
           size: 20,
         ),
       ),
@@ -120,12 +123,17 @@ class _ProductPageState extends State<ProductPage>
   // PRODUCT IMAGE CAROUSEL
 
   Widget _buildProductImage() {
+    final colors = Theme.of(context).colorScheme;
+
     return AnimatedBuilder(
       animation: _borderController,
       builder: (context, child) {
         return CustomPaint(
           painter: _ProductBorderPainter(
             progress: _borderController.value,
+            primaryColor: colors.primary,
+            secondaryColor: colors.secondary,
+            surfaceColor: colors.surface,
           ),
           child: Container(
             width: double.infinity,
@@ -133,7 +141,7 @@ class _ProductPageState extends State<ProductPage>
             margin: const EdgeInsets.all(2.5),
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: AppColors.appBackground,
+              color: Theme.of(context).scaffoldBackgroundColor,
               borderRadius: BorderRadius.circular(10.8),
             ),
             child: _images.isEmpty
@@ -169,10 +177,10 @@ class _ProductPageState extends State<ProductPage>
   }
 
   Widget _buildImagePlaceholder() {
-    return const Center(
+    return Center(
       child: Icon(
         Icons.image_not_supported_outlined,
-        color: AppColors.error,
+        color: Theme.of(context).colorScheme.error,
         size: 40,
       ),
     );
@@ -185,6 +193,8 @@ class _ProductPageState extends State<ProductPage>
       return const SizedBox.shrink();
     }
 
+    final colors = Theme.of(context).colorScheme;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(_images.length, (index) {
@@ -195,8 +205,8 @@ class _ProductPageState extends State<ProductPage>
           height: 6,
           decoration: BoxDecoration(
             color: _currentPage == index
-                ? AppColors.text
-                : AppColors.border,
+                ? colors.onSurface
+                : colors.outline,
             borderRadius: BorderRadius.circular(10),
           ),
         );
@@ -450,13 +460,19 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
   }
 }
 
-// ROTATING GREEN GRADIENT BORDER
+// ROTATING THEME GRADIENT BORDER
 
 class _ProductBorderPainter extends CustomPainter {
   final double progress;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final Color surfaceColor;
 
   _ProductBorderPainter({
     required this.progress,
+    required this.primaryColor,
+    required this.secondaryColor,
+    required this.surfaceColor,
   });
 
   @override
@@ -468,12 +484,12 @@ class _ProductBorderPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..shader = SweepGradient(
-        colors: const [
-          Color(0xFFC5E37A),
-          Color(0xFF5E8E6E),
-          Color(0xFF1E3A2F),
-          Color(0xFF5E8E6E),
-          Color(0xFFC5E37A),
+        colors: [
+          secondaryColor,
+          primaryColor,
+          surfaceColor,
+          primaryColor,
+          secondaryColor,
         ],
         transform: GradientRotation(progress * 2 * math.pi),
       ).createShader(rect);
@@ -488,6 +504,9 @@ class _ProductBorderPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ProductBorderPainter oldDelegate) {
-    return oldDelegate.progress != progress;
+    return oldDelegate.progress != progress ||
+        oldDelegate.primaryColor != primaryColor ||
+        oldDelegate.secondaryColor != secondaryColor ||
+        oldDelegate.surfaceColor != surfaceColor;
   }
 }

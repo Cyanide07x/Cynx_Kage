@@ -1,17 +1,7 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// screens/signup/signup_screen.dart
-// New-account registration screen for Cynx Kage.
-//
-// Collects name, email, and password, validates input, creates a Firebase
-// Auth user, stores the display name, and returns the user to [LoginScreen].
-// Firebase automatically signs the new user in after registration.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-import '../../theme/appcolors.dart';
 
 /// Stateful registration screen with name, email, and password fields.
 class SignUpScreen extends StatefulWidget {
@@ -22,27 +12,15 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  // ── Controllers & state ───────────────────────────────────────────────────
+  // Controllers & state
 
-  /// Text controller for the full-name input.
   final nameController = TextEditingController();
-
-  /// Text controller for the email input.
   final emailController = TextEditingController();
-
-  /// Text controller for the password input.
   final passwordController = TextEditingController();
 
-  /// Whether the user has checked the Terms and Conditions checkbox.
   bool isAgreed = false;
-
-  /// Whether a sign-up network request is in progress.
   bool isLoading = false;
-
-  /// Whether the password characters are hidden.
   bool obscurePassword = true;
-
-  // ── Lifecycle ────────────────────────────────────────────────────────────
 
   @override
   void dispose() {
@@ -52,14 +30,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  // ── Actions ──────────────────────────────────────────────────────────────
+  // Actions
 
-  /// Validates the form, creates a Firebase user, and saves the display name.
-  ///
-  /// Validation rules:
-  /// - All fields must be non-empty.
-  /// - The Terms and Conditions checkbox must be checked.
-  /// - Password must be at least 6 characters.
   Future<void> signUp() async {
     final name = nameController.text.trim();
     final email = emailController.text.trim();
@@ -69,10 +41,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
       showMessage('Please fill in all fields.');
       return;
     }
+
     if (!isAgreed) {
       showMessage('Please agree to the Terms and Conditions.');
       return;
     }
+
     if (password.length < 6) {
       showMessage('Password must be at least 6 characters.');
       return;
@@ -81,21 +55,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() => isLoading = true);
 
     try {
-      final credential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
+      final credential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Persist the user's chosen display name in their Firebase profile.
       await credential.user?.updateDisplayName(name);
 
       if (!mounted) return;
 
       showMessage('Account created successfully!');
-
-      // Firebase automatically signs the user in after registration;
-      // return to LoginScreen - the app will then detect the active session.
       Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
@@ -133,19 +103,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  /// Displays a [SnackBar] with the given [message].
   void showMessage(String message) {
+    final colors = Theme.of(context).colorScheme;
+
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+      SnackBar(
+        backgroundColor: colors.surface,
+        content: Text(
+          message,
+          style: TextStyle(color: colors.onSurface),
+        ),
+      ),
     );
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────
+  // Build
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF263A30),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -158,17 +138,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Heading ──────────────────────────────────────────
-                  const Text(
+                  // Heading
+                  Text(
                     'Create an account',
                     style: TextStyle(
-                      color: Color(0xFFF0F4E6),
+                      color: colors.onSurface,
                       fontSize: 32,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
 
-                  // ── Name field ────────────────────────────────────────
+                  // Name field
                   const SizedBox(height: 30),
                   label('Name'),
                   const SizedBox(height: 10),
@@ -177,7 +157,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     hint: 'Your full name',
                   ),
 
-                  // ── Email field ───────────────────────────────────────
+                  // Email field
                   const SizedBox(height: 24),
                   label('Email'),
                   const SizedBox(height: 10),
@@ -187,7 +167,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     keyboardType: TextInputType.emailAddress,
                   ),
 
-                  // ── Password field ─────────────────────────────────────
+                  // Password field
                   const SizedBox(height: 24),
                   label('Password'),
                   const SizedBox(height: 10),
@@ -197,23 +177,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     isPassword: true,
                   ),
 
-                  // ── Terms checkbox ──────────────────────────────────
+                  // Terms checkbox
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       Checkbox(
                         value: isAgreed,
-                        activeColor: const Color(0xFFBBD58E),
-                        checkColor: const Color(0xFF263A30),
+                        activeColor: colors.primary,
+                        checkColor: colors.onPrimary,
                         onChanged: (value) {
                           setState(() => isAgreed = value ?? false);
                         },
                       ),
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           'I agree to the Terms and Conditions',
                           style: TextStyle(
-                            color: Color(0xFFF0F4E6),
+                            color: colors.onSurface,
                             fontSize: 14,
                           ),
                         ),
@@ -221,7 +201,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ],
                   ),
 
-                  // ── Sign-up button ──────────────────────────────────
+                  // Sign-up button
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
@@ -229,23 +209,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: ElevatedButton(
                       onPressed: isAgreed && !isLoading ? signUp : null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFBBD58E),
+                        backgroundColor: colors.primary,
                         disabledBackgroundColor:
-                            const Color(0xFFBBD58E).withValues(alpha: 0.3),
-                        foregroundColor: const Color(0xFF263A30),
+                            colors.primary.withValues(alpha: 0.3),
+                        foregroundColor: colors.onPrimary,
                         disabledForegroundColor:
-                            const Color(0xFF263A30).withValues(alpha: 0.4),
+                            colors.onPrimary.withValues(alpha: 0.4),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
                       ),
                       child: isLoading
-                          ? const SizedBox(
+                          ? SizedBox(
                               height: 24,
                               width: 24,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2.5,
-                                color: Color(0xFF263A30),
+                                color: colors.onPrimary,
                               ),
                             )
                           : const Text(
@@ -258,13 +238,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
 
-                  // ── Log-in link ────────────────────────────────────
+                  // Log-in link
                   const SizedBox(height: 30),
                   Center(
                     child: RichText(
                       text: TextSpan(
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
+                        style: TextStyle(
+                          color: colors.onSurfaceVariant,
                           fontSize: 15,
                         ),
                         children: [
@@ -273,8 +253,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                           TextSpan(
                             text: 'Log in',
-                            style: const TextStyle(
-                              color: Color(0xFFBBD58E),
+                            style: TextStyle(
+                              color: colors.primary,
                               fontWeight: FontWeight.w700,
                               decoration: TextDecoration.underline,
                             ),
@@ -294,33 +274,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // ── Private widget builders ────────────────────────────────────────────
+  // Private widget builders
 
-  /// Renders a bold field label (e.g. "Name", "Email", "Password").
   Widget label(String text) {
+    final colors = Theme.of(context).colorScheme;
+
     return Text(
       text,
-      style: const TextStyle(
-        color: Color(0xFFF0F4E6),
+      style: TextStyle(
+        color: colors.onSurface,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
     );
   }
 
-  /// A reusable styled input field for the sign-up form.
-  ///
-  /// [controller]   - the associated [TextEditingController].
-  /// [hint]         - placeholder text.
-  /// [isPassword]   - when `true`, the field value is obscured and a
-  ///                  visibility toggle icon button is shown.
-  /// [keyboardType] - optional keyboard variant (default: text).
   Widget inputField({
     required TextEditingController controller,
     String? hint,
     bool isPassword = false,
     TextInputType keyboardType = TextInputType.text,
   }) {
+    final colors = Theme.of(context).colorScheme;
+
     return SizedBox(
       height: 60,
       child: TextField(
@@ -328,15 +304,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
         keyboardType: keyboardType,
         obscureText: isPassword && obscurePassword,
         autocorrect: false,
-        style: const TextStyle(
-          color: Color(0xFFF0F4E6),
+        style: TextStyle(
+          color: colors.onSurface,
           fontSize: 16,
         ),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(color: Color(0xFFB4C6B0)),
+          hintStyle: TextStyle(
+            color: colors.onSurfaceVariant,
+          ),
           filled: true,
-          fillColor: const Color(0xFF588157),
+          fillColor: colors.surfaceContainerHighest,
           contentPadding: const EdgeInsets.symmetric(horizontal: 18),
           suffixIcon: isPassword
               ? IconButton(
@@ -347,18 +325,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     obscurePassword
                         ? Icons.visibility_outlined
                         : Icons.visibility_off_outlined,
-                    color: const Color(0xFFBBD58E),
+                    color: colors.primary,
                   ),
                 )
               : null,
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(18),
-            borderSide: const BorderSide(color: Color(0xFF588157)),
+            borderSide: BorderSide(color: colors.outline),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(18),
-            borderSide: const BorderSide(
-              color: Color(0xFFBBD58E),
+            borderSide: BorderSide(
+              color: colors.primary,
               width: 2,
             ),
           ),
