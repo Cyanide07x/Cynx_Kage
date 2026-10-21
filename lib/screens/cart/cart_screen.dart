@@ -1,6 +1,6 @@
+
 import 'package:flutter/material.dart';
 
-import '../../theme/appcolors.dart';
 import 'cart_item.dart';
 import 'cart_card.dart';
 import 'cart_controller.dart';
@@ -14,7 +14,7 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   // Cart starts empty until products are added.
-List<CartItem> get _cartItems => CartController.instance.items;
+  List<CartItem> get _cartItems => CartController.instance.items;
 
   static const double _freeDeliveryThreshold = 1700;
   static const double _deliveryCharge = 99;
@@ -25,8 +25,7 @@ List<CartItem> get _cartItems => CartController.instance.items;
       );
 
   double get _delivery {
-    if (_cartItems.isEmpty ||
-        _subtotal >= _freeDeliveryThreshold) {
+    if (_cartItems.isEmpty || _subtotal >= _freeDeliveryThreshold) {
       return 0;
     }
     return _deliveryCharge;
@@ -42,8 +41,7 @@ List<CartItem> get _cartItems => CartController.instance.items;
   double get _deliveryProgress =>
       (_subtotal / _freeDeliveryThreshold).clamp(0.0, 1.0);
 
-  String _formatPrice(double price) =>
-      '₹${price.toStringAsFixed(0)}';
+  String _formatPrice(double price) => '₹${price.toStringAsFixed(0)}';
 
   void _updateQuantity(CartItem item, int quantity) {
     if (quantity < 1) return;
@@ -61,8 +59,11 @@ List<CartItem> get _cartItems => CartController.instance.items;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.appBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -80,7 +81,7 @@ List<CartItem> get _cartItems => CartController.instance.items;
                     height: 44,
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: AppColors.border,
+                        color: colors.outlineVariant,
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(10),
@@ -92,9 +93,9 @@ List<CartItem> get _cartItems => CartController.instance.items;
                           Navigator.of(context).pop();
                         }
                       },
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.arrow_back,
-                        color: AppColors.text,
+                        color: colors.onSurface,
                         size: 20,
                       ),
                     ),
@@ -104,10 +105,10 @@ List<CartItem> get _cartItems => CartController.instance.items;
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Cart',
                           style: TextStyle(
-                            color: AppColors.text,
+                            color: colors.onSurface,
                             fontSize: 26,
                             fontWeight: FontWeight.bold,
                           ),
@@ -117,8 +118,8 @@ List<CartItem> get _cartItems => CartController.instance.items;
                           _totalQuantity > 0
                               ? 'Almost yours · $_totalQuantity ${_totalQuantity == 1 ? 'item' : 'items'}'
                               : 'Almost yours',
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
+                          style: TextStyle(
+                            color: colors.onSurfaceVariant,
                             fontSize: 13,
                           ),
                         ),
@@ -143,6 +144,8 @@ List<CartItem> get _cartItems => CartController.instance.items;
   }
 
   Widget _buildEmptyCart() {
+    final colors = Theme.of(context).colorScheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -153,30 +156,30 @@ List<CartItem> get _cartItems => CartController.instance.items;
               width: 76,
               height: 76,
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: colors.outlineVariant),
                 borderRadius: BorderRadius.circular(22),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.shopping_bag_outlined,
-                color: AppColors.primary,
+                color: colors.primary,
                 size: 34,
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Your bag is empty',
               style: TextStyle(
-                color: AppColors.text,
+                color: colors.onSurface,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Your next favorite piece is waiting.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppColors.textSecondary,
+                color: colors.onSurfaceVariant,
                 fontSize: 13,
               ),
             ),
@@ -188,10 +191,8 @@ List<CartItem> get _cartItems => CartController.instance.items;
                 }
               },
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(
-                  color: AppColors.primary,
-                ),
+                foregroundColor: colors.primary,
+                side: BorderSide(color: colors.primary),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 22,
                   vertical: 12,
@@ -206,6 +207,8 @@ List<CartItem> get _cartItems => CartController.instance.items;
   }
 
   Widget _buildCartContent() {
+    final colors = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         Expanded(
@@ -216,8 +219,8 @@ List<CartItem> get _cartItems => CartController.instance.items;
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  border: Border.all(color: AppColors.border),
+                  color: colors.surface,
+                  border: Border.all(color: colors.outlineVariant),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Column(
@@ -227,8 +230,8 @@ List<CartItem> get _cartItems => CartController.instance.items;
                       _subtotal >= _freeDeliveryThreshold
                           ? 'You unlocked free delivery!'
                           : 'Add ${_formatPrice(_freeDeliveryThreshold - _subtotal)} more for free delivery',
-                      style: const TextStyle(
-                        color: AppColors.text,
+                      style: TextStyle(
+                        color: colors.onSurface,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -239,10 +242,9 @@ List<CartItem> get _cartItems => CartController.instance.items;
                       child: LinearProgressIndicator(
                         value: _deliveryProgress,
                         minHeight: 5,
-                        backgroundColor: AppColors.border,
-                        valueColor:
-                            const AlwaysStoppedAnimation<Color>(
-                          AppColors.primary,
+                        backgroundColor: colors.outlineVariant,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          colors.primary,
                         ),
                       ),
                     ),
@@ -275,15 +277,15 @@ List<CartItem> get _cartItems => CartController.instance.items;
               _priceRow(
                 'Delivery',
                 _delivery == 0 ? 'FREE' : _formatPrice(_delivery),
-                valueColor: AppColors.primary,
+                valueColor: colors.primary,
               ),
               const SizedBox(height: 16),
-              const Divider(color: AppColors.border),
+              Divider(color: colors.outlineVariant),
               const SizedBox(height: 12),
               _priceRow(
                 'Total',
                 _formatPrice(_total),
-                valueColor: AppColors.primary,
+                valueColor: colors.primary,
                 bold: true,
               ),
             ],
@@ -294,9 +296,9 @@ List<CartItem> get _cartItems => CartController.instance.items;
         Container(
           padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: colors.surface,
             border: Border(
-              top: BorderSide(color: AppColors.border),
+              top: BorderSide(color: colors.outlineVariant),
             ),
           ),
           child: Row(
@@ -306,18 +308,18 @@ List<CartItem> get _cartItems => CartController.instance.items;
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       'TOTAL',
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        color: colors.onSurfaceVariant,
                         fontSize: 10,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       _formatPrice(_total),
-                      style: const TextStyle(
-                        color: AppColors.primary,
+                      style: TextStyle(
+                        color: colors.primary,
                         fontSize: 19,
                         fontWeight: FontWeight.w800,
                       ),
@@ -342,10 +344,8 @@ List<CartItem> get _cartItems => CartController.instance.items;
                             );
                           },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.text,
-                      side: const BorderSide(
-                        color: AppColors.border,
-                      ),
+                      foregroundColor: colors.onSurface,
+                      side: BorderSide(color: colors.outlineVariant),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -376,16 +376,18 @@ List<CartItem> get _cartItems => CartController.instance.items;
   Widget _priceRow(
     String label,
     String value, {
-    Color valueColor = AppColors.text,
+    Color? valueColor,
     bool bold = false,
   }) {
+    final colors = Theme.of(context).colorScheme;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
           style: TextStyle(
-            color: AppColors.textSecondary,
+            color: colors.onSurfaceVariant,
             fontSize: 12,
             fontWeight: bold ? FontWeight.bold : FontWeight.normal,
           ),
@@ -393,7 +395,7 @@ List<CartItem> get _cartItems => CartController.instance.items;
         Text(
           value,
           style: TextStyle(
-            color: valueColor,
+            color: valueColor ?? colors.onSurface,
             fontSize: bold ? 15 : 12,
             fontWeight: FontWeight.w700,
           ),

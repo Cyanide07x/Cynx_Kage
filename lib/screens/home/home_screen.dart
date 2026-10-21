@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -28,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -99,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (selectedCategory == 'Women') {
       return const WomenScreen();
     }
-    
+
     if (selectedCategory == 'Unisex') {
       return const UnisexScreen();
     }
@@ -126,8 +127,8 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Text(
           '$selectedCategory collection coming soon',
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontSize: 18,
           ),
         ),
@@ -149,7 +150,6 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
     required this.onCategorySelected,
   });
 
-  // Increased height to reserve permanent space beneath categories.
   @override
   double get minExtent => 123;
 
@@ -171,8 +171,11 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
       'Accessories',
     ];
 
+    final colors = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+
     return Container(
-      color: AppColors.appBackground,
+      color: theme.scaffoldBackgroundColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -200,7 +203,11 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
                   children: [
                     for (int i = 0; i < categories.length; i++) ...[
                       if (i > 0) const SizedBox(width: 15),
-                      _buildCategoryButton(categories[i]),
+                      _buildCategoryButton(
+                        categories[i],
+                        colors,
+                        theme,
+                      ),
                     ],
                   ],
                 ),
@@ -215,7 +222,11 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
     );
   }
 
-  Widget _buildCategoryButton(String category) {
+  Widget _buildCategoryButton(
+    String category,
+    ColorScheme colors,
+    ThemeData theme,
+  ) {
     final isSelected = selectedCategory == category;
 
     final widths = <String, double>{
@@ -237,18 +248,18 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
           gradient: LinearGradient(
             colors: isSelected
                 ? [
-                    AppColors.border,
-                    AppColors.deepForest,
+                    colors.surfaceContainerHighest,
+                    colors.surface,
                   ]
                 : [
-                    AppColors.surface,
-                    AppColors.appBackground,
+                    colors.surface,
+                    theme.scaffoldBackgroundColor,
                   ],
           ),
           border: Border.all(
             color: isSelected
-                ? AppColors.primary
-                : AppColors.border,
+                ? colors.primary
+                : theme.dividerColor,
             width: 2,
           ),
           borderRadius: BorderRadius.circular(10),
@@ -258,8 +269,8 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
           category,
           style: TextStyle(
             color: isSelected
-                ? Colors.white
-                : AppColors.textSecondary,
+                ? colors.onSurface
+                : colors.onSurfaceVariant,
             fontSize: 16,
           ),
         ),

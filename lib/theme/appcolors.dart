@@ -1,47 +1,58 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// theme/appcolors.dart
-// Central colour palette for the Cynx Kage app.
-//
-// All widgets reference these constants so that a design update only requires
-// changing values in this one file.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
 
-/// Static colour constants used throughout the app.
+/// Central color palettes for Cynx Kage.
 ///
-/// This class is intentionally non-instantiable; access colours through the
-/// static fields (e.g. `AppColors.primary`).
+/// Forest is the original theme.
+/// Cynx is the new black-and-hot-pink theme.
+///
+/// Existing AppColors references retain the original Forest colors.
+/// Use AppColors.forest or AppColors.cynx when selecting a specific palette.
 class AppColors {
-  AppColors._(); // prevent instantiation
+  AppColors._();
 
-  /// Pure black — default page/scaffold background.
-  static const appBackground = Color(0xFF000000);
+  // ─────────────────────────────────────────────
+  // Forest Theme — Original
+  // ─────────────────────────────────────────────
 
-  /// Dark charcoal — cards, image placeholders, and elevated surfaces.
-  static const surface = Color(0xFF1F1F1F);
+  static const Color forestBackground = Color(0xFF000000);
+  static const Color forestSurface = Color(0xFF1F1F1F);
+  static const Color forestBorder = Color(0xFF3A3A3A);
+  static const Color forestSecondary = Color(0xFFB7D98A);
+  static const Color forestPrimary = Color(0xFFC5E37A);
+  static const Color forestText = Color(0xFFF5F5F5);
+  static const Color forestTextSecondary = Color(0xFF9A9A9A);
+  static const Color forestDeepForest = Color(0xFF2A2A2A);
+  static const Color forestError = Color(0xFFFFB4A2);
+  static const Color forestGradient = Color(0xFF0B0B0B);
 
-  /// Mid grey — chip outlines, dividers, and inactive dot indicators.
-  static const border = Color(0xFF3A3A3A);
+  // ─────────────────────────────────────────────
+  // Cynx Theme — Black & Hot Pink
+  // ─────────────────────────────────────────────
 
-  /// Soft lime — card borders and secondary highlights.
-  static const secondary = Color(0xFFB7D98A);
+  static const Color cynxBackground = Color(0xFF080608);
+  static const Color cynxSurface = Color(0xFF110D10);
+  static const Color cynxBorder = Color(0xFF292329);
+  static const Color cynxPrimary = Color(0xFFE50046);
+  static const Color cynxSecondary = Color(0xFFA80034);
+  static const Color cynxText = Color(0xFFF5F2F4);
+  static const Color cynxTextSecondary = Color(0xFFAAA2A8);
+  static const Color cynxDeepForest = Color(0xFF1A1519);
+  static const Color cynxError = Color(0xFFFF6B81);
+  static const Color cynxGradient = Color(0xFF080608);
 
-  /// Lime green — primary brand accent (buttons, active icons, prices).
-  static const primary = Color(0xFFC5E37A);
+  // ─────────────────────────────────────────────
+  // Original aliases — backwards compatibility
+  // ─────────────────────────────────────────────
 
-  /// Near-white — main body and heading text.
-  static const text = Color(0xFFF5F5F5);
-
-  /// Medium grey — hints, captions, inactive icons, and secondary labels.
-  static const textSecondary = Color(0xFF9A9A9A);
-
-  /// Dark charcoal — text-field fill colour.
-  static const deepForest = Color(0xFF2A2A2A);
-
-  /// Muted salmon — error states and destructive-action labels.
-  static const error = Color(0xFFFFB4A2);
-
-  /// Near-black — bottom navigation bar background.
-  static const gradient = Color(0xFF0B0B0B);
+  static const Color appBackground = forestBackground;
+  static const Color surface = forestSurface;
+  static const Color border = forestBorder;
+  static const Color secondary = forestSecondary;
+  static const Color primary = forestPrimary;
+  static const Color text = forestText;
+  static const Color textSecondary = forestTextSecondary;
+  static const Color deepForest = forestDeepForest;
+  static const Color error = forestError;
+  static const Color gradient = forestGradient;
 }

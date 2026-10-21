@@ -1,9 +1,9 @@
+
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import '../theme/appcolors.dart';
 import 'product_page.dart';
 
 class NewArrivals extends StatefulWidget {
@@ -69,6 +69,8 @@ class _NewArrivalsState extends State<NewArrivals>
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         Padding(
@@ -76,10 +78,10 @@ class _NewArrivalsState extends State<NewArrivals>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'New Arrivals',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: colors.onSurface,
                   fontSize: 26,
                   fontWeight: FontWeight.w500,
                 ),
@@ -87,7 +89,7 @@ class _NewArrivalsState extends State<NewArrivals>
               Text(
                 'See all',
                 style: TextStyle(
-                  color: AppColors.primary,
+                  color: colors.primary,
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
@@ -132,12 +134,12 @@ class _NewArrivalsState extends State<NewArrivals>
               });
 
             if (products.isEmpty) {
-              return const SizedBox(
+              return SizedBox(
                 height: 325,
                 child: Center(
                   child: Text(
                     'No new arrivals yet.',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: colors.onSurface),
                   ),
                 ),
               );
@@ -154,7 +156,7 @@ class _NewArrivalsState extends State<NewArrivals>
                     width: double.infinity,
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
-                      color: AppColors.text,
+                      color: colors.surface,
                       borderRadius: BorderRadius.circular(28),
                     ),
                     child: Stack(
@@ -172,10 +174,10 @@ class _NewArrivalsState extends State<NewArrivals>
                                   data['imageUrl'] as String? ?? '';
 
                               if (imageUrl.isEmpty) {
-                                return const Center(
+                                return Center(
                                   child: Icon(
                                     Icons.image_not_supported,
-                                    color: Colors.white,
+                                    color: colors.onSurfaceVariant,
                                     size: 48,
                                   ),
                                 );
@@ -188,10 +190,10 @@ class _NewArrivalsState extends State<NewArrivals>
                                   fit: BoxFit.cover,
                                   gaplessPlayback: true,
                                   errorBuilder: (context, error, stackTrace) {
-                                    return const Center(
+                                    return Center(
                                       child: Icon(
                                         Icons.broken_image,
-                                        color: Colors.white,
+                                        color: colors.onSurfaceVariant,
                                         size: 48,
                                       ),
                                     );
@@ -212,13 +214,13 @@ class _NewArrivalsState extends State<NewArrivals>
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.primary,
+                                color: colors.primary,
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: const Text(
+                              child: Text(
                                 '* NEW',
                                 style: TextStyle(
-                                  color: AppColors.deepForest,
+                                  color: colors.onPrimary,
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -233,7 +235,7 @@ class _NewArrivalsState extends State<NewArrivals>
                             width: 45,
                             height: 45,
                             decoration: BoxDecoration(
-                              color: AppColors.textSecondary,
+                              color: colors.surfaceContainerHighest,
                               shape: BoxShape.circle,
                             ),
                             child: IconButton(
@@ -248,7 +250,7 @@ class _NewArrivalsState extends State<NewArrivals>
                                 products[safePage].id,
                               )
                                   ? Colors.red
-                                  : AppColors.text,
+                                  : colors.onSurface,
                               onPressed: () {
                                 setState(() {
                                   final id = products[safePage].id;
@@ -281,13 +283,15 @@ class _NewArrivalsState extends State<NewArrivals>
   }
 
   Widget _dot(bool active) {
+    final colors = Theme.of(context).colorScheme;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       margin: const EdgeInsets.symmetric(horizontal: 4),
       width: active ? 28 : 8,
       height: 8,
       decoration: BoxDecoration(
-        color: active ? AppColors.primary : AppColors.border,
+        color: active ? colors.primary : colors.outlineVariant,
         borderRadius: BorderRadius.circular(20),
       ),
     );

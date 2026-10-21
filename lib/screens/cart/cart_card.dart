@@ -1,6 +1,6 @@
+
 import 'package:flutter/material.dart';
 
-import '../../theme/appcolors.dart';
 import 'cart_item.dart';
 
 class CartCard extends StatelessWidget {
@@ -17,11 +17,13 @@ class CartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.border),
+        color: colors.surface,
+        border: Border.all(color: colors.outlineVariant),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -33,20 +35,20 @@ class CartCard extends StatelessWidget {
             child: Container(
               width: 85,
               height: 105,
-              color: AppColors.deepForest,
+              color: colors.surfaceContainerHighest,
               child: item.imageUrl.isEmpty
-                  ? const Icon(
+                  ? Icon(
                       Icons.image_outlined,
-                      color: AppColors.textSecondary,
+                      color: colors.onSurfaceVariant,
                       size: 30,
                     )
                   : Image.network(
                       item.imageUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
+                        return Icon(
                           Icons.broken_image_outlined,
-                          color: AppColors.textSecondary,
+                          color: colors.onSurfaceVariant,
                           size: 30,
                         );
                       },
@@ -65,8 +67,8 @@ class CartCard extends StatelessWidget {
                   item.name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.text,
+                  style: TextStyle(
+                    color: colors.onSurface,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
@@ -76,8 +78,8 @@ class CartCard extends StatelessWidget {
 
                 Text(
                   'Size ${item.size} · ${item.color}',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
                     fontSize: 11,
                   ),
                 ),
@@ -86,8 +88,8 @@ class CartCard extends StatelessWidget {
 
                 Text(
                   '₹${item.price.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    color: AppColors.primary,
+                  style: TextStyle(
+                    color: colors.primary,
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                   ),
@@ -99,6 +101,7 @@ class CartCard extends StatelessWidget {
                 Row(
                   children: [
                     _quantityButton(
+                      context: context,
                       icon: Icons.remove,
                       onTap: item.quantity > 1
                           ? () => onQuantityChanged(item.quantity - 1)
@@ -109,8 +112,8 @@ class CartCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Text(
                         '${item.quantity}',
-                        style: const TextStyle(
-                          color: AppColors.text,
+                        style: TextStyle(
+                          color: colors.onSurface,
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                         ),
@@ -118,6 +121,7 @@ class CartCard extends StatelessWidget {
                     ),
 
                     _quantityButton(
+                      context: context,
                       icon: Icons.add,
                       onTap: () =>
                           onQuantityChanged(item.quantity + 1),
@@ -133,9 +137,9 @@ class CartCard extends StatelessWidget {
                         minWidth: 32,
                         minHeight: 32,
                       ),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.delete_outline,
-                        color: AppColors.textSecondary,
+                        color: colors.onSurfaceVariant,
                         size: 20,
                       ),
                     ),
@@ -149,8 +153,8 @@ class CartCard extends StatelessWidget {
                   alignment: Alignment.centerRight,
                   child: Text(
                     'Total: ₹${item.totalPrice.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
                       fontSize: 11,
                     ),
                   ),
@@ -164,9 +168,12 @@ class CartCard extends StatelessWidget {
   }
 
   Widget _quantityButton({
+    required BuildContext context,
     required IconData icon,
     required VoidCallback? onTap,
   }) {
+    final colors = Theme.of(context).colorScheme;
+
     return SizedBox(
       width: 29,
       height: 29,
@@ -174,9 +181,9 @@ class CartCard extends StatelessWidget {
         onPressed: onTap,
         padding: EdgeInsets.zero,
         icon: Icon(icon, size: 15),
-        color: AppColors.text,
+        color: colors.onSurface,
         style: IconButton.styleFrom(
-          side: const BorderSide(color: AppColors.border),
+          side: BorderSide(color: colors.outlineVariant),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),

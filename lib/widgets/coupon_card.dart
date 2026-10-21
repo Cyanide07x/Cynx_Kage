@@ -1,31 +1,12 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// widgets/coupon_card.dart
-// Coupon tile shown in the Offers screen.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../theme/appcolors.dart';
-
 /// Displays a promotional coupon with a discount amount, description, coupon
 /// code, and a "Copy" button that copies [code] to the clipboard.
-///
-/// ```dart
-/// CouponCard(
-///   discount: '20%',
-///   description: 'On your first order',
-///   code: 'FIRST20',
-/// )
-/// ```
 class CouponCard extends StatelessWidget {
-  /// The discount value displayed prominently (e.g. '20%', 'B2G1').
   final String discount;
-
-  /// A short description of the coupon's terms.
   final String description;
-
-  /// The coupon code that is copied to the clipboard on tap.
   final String code;
 
   const CouponCard({
@@ -35,42 +16,42 @@ class CouponCard extends StatelessWidget {
     required this.code,
   });
 
-  // ── Actions ────────────────────────────────────────────────────────────
-
   /// Copies [code] to the system clipboard and shows a confirmation [SnackBar].
   Future<void> _copyCoupon(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: code));
 
     if (!context.mounted) return;
 
+    final colors = Theme.of(context).colorScheme;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Coupon $code copied'),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.surface,
+        backgroundColor: colors.surface,
         duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: AppColors.border,
+          color: colors.outlineVariant,
           width: 1,
         ),
       ),
       child: Row(
         children: [
-          // ── Discount amount ───────────────────────────────────────────
+          // Discount amount
           SizedBox(
             width: 72,
             child: Column(
@@ -79,16 +60,16 @@ class CouponCard extends StatelessWidget {
                 Text(
                   discount,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: AppColors.primary,
+                  style: TextStyle(
+                    color: colors.primary,
                     fontSize: 23,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                const Text(
+                Text(
                   'OFF',
                   style: TextStyle(
-                    color: AppColors.textSecondary,
+                    color: colors.onSurfaceVariant,
                     fontSize: 10,
                   ),
                 ),
@@ -96,23 +77,23 @@ class CouponCard extends StatelessWidget {
             ),
           ),
 
-          // ── Vertical divider ──────────────────────────────────────────
+          // Vertical divider
           Container(
             width: 1,
             height: 48,
-            color: AppColors.border,
+            color: colors.outlineVariant,
             margin: const EdgeInsets.symmetric(horizontal: 10),
           ),
 
-          // ── Description and code ─────────────────────────────────────
+          // Description and code
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   description,
-                  style: const TextStyle(
-                    color: AppColors.text,
+                  style: TextStyle(
+                    color: colors.onSurface,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
@@ -120,8 +101,8 @@ class CouponCard extends StatelessWidget {
                 const SizedBox(height: 9),
                 Text(
                   code,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
                     fontSize: 12,
                     letterSpacing: 1,
                   ),
@@ -132,12 +113,12 @@ class CouponCard extends StatelessWidget {
 
           const SizedBox(width: 8),
 
-          // ── Copy button ─────────────────────────────────────────────
+          // Copy button
           OutlinedButton(
             onPressed: () => _copyCoupon(context),
             style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.text,
-              side: const BorderSide(color: AppColors.border),
+              foregroundColor: colors.onSurface,
+              side: BorderSide(color: colors.outlineVariant),
               padding: const EdgeInsets.symmetric(
                 horizontal: 14,
                 vertical: 9,

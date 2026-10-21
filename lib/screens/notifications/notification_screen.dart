@@ -1,10 +1,5 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// screens/notifications/notification_screen.dart
-// Full-screen notification centre pushed from [NavigationShell].
-// ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
-import '../../theme/appcolors.dart';
 import 'notification_card.dart';
 
 /// Notification centre screen listing recent in-app notifications.
@@ -16,8 +11,11 @@ class NotificationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.appBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20),
@@ -26,7 +24,7 @@ class NotificationScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 25),
 
-              // ── Header ────────────────────────────────────────────────
+              // Header
               Row(
                 children: [
                   // Back button
@@ -35,7 +33,7 @@ class NotificationScreen extends StatelessWidget {
                     height: 44,
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: AppColors.border,
+                        color: colors.outlineVariant,
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(10),
@@ -47,32 +45,33 @@ class NotificationScreen extends StatelessWidget {
                           Navigator.of(context).pop();
                         }
                       },
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.arrow_back,
-                        color: AppColors.text,
+                        color: colors.onSurface,
                         size: 20,
                       ),
                     ),
                   ),
                   const SizedBox(width: 20),
+
                   // Screen title and tagline
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Notification',
                           style: TextStyle(
-                            color: AppColors.text,
+                            color: colors.onSurface,
                             fontSize: 26,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           'First to know, first to wear.',
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: colors.onSurfaceVariant,
                             fontSize: 13,
                           ),
                         ),
@@ -82,12 +81,12 @@ class NotificationScreen extends StatelessWidget {
                 ],
               ),
 
-              // ── Today's notifications ─────────────────────────────────
+              // Today's notifications
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'TODAY',
                 style: TextStyle(
-                  color: AppColors.textSecondary,
+                  color: colors.onSurfaceVariant,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 1.2,

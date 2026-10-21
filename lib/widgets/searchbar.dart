@@ -1,3 +1,4 @@
+
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
@@ -40,8 +41,7 @@ class _AnimatedSearchBarState extends State<AnimatedSearchBar>
 
   @override
   Widget build(BuildContext context) {
-    const textColor = Color(0xFFF2F0E6);
-    const hintColor = Color(0xFFA9BFAF);
+    final colors = Theme.of(context).colorScheme;
 
     return RepaintBoundary(
       child: CustomPaint(
@@ -49,6 +49,9 @@ class _AnimatedSearchBarState extends State<AnimatedSearchBar>
         painter: _GradientRingPainter(
           animation: _ctrl,
           strokeWidth: widget.borderWidth,
+          primaryColor: colors.primary,
+          secondaryColor: colors.secondary,
+          surfaceColor: colors.surface,
         ),
         child: SizedBox(
           height: widget.height,
@@ -57,12 +60,20 @@ class _AnimatedSearchBarState extends State<AnimatedSearchBar>
             onChanged: widget.onChanged,
             onSubmitted: widget.onSubmitted,
             textInputAction: TextInputAction.search,
-            cursorColor: const Color(0xFFC5E37A),
-            style: const TextStyle(color: textColor, fontSize: 15),
+            cursorColor: colors.primary,
+            style: TextStyle(
+              color: colors.onSurface,
+              fontSize: 15,
+            ),
             decoration: InputDecoration(
               hintText: widget.hint,
-              hintStyle: const TextStyle(color: hintColor),
-              prefixIcon: const Icon(Icons.search, color: hintColor),
+              hintStyle: TextStyle(
+                color: colors.onSurfaceVariant,
+              ),
+              prefixIcon: Icon(
+                Icons.search,
+                color: colors.onSurfaceVariant,
+              ),
               // No fill, no borders: keeps the background transparent.
               filled: false,
               border: InputBorder.none,
@@ -79,18 +90,27 @@ class _AnimatedSearchBarState extends State<AnimatedSearchBar>
   }
 }
 
+
 class _GradientRingPainter extends CustomPainter {
   final Animation<double> animation;
   final double strokeWidth;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final Color surfaceColor;
 
-  _GradientRingPainter({required this.animation, required this.strokeWidth})
-      : super(repaint: animation); // repaints every frame without rebuilding widgets
+  _GradientRingPainter({
+    required this.animation,
+    required this.strokeWidth,
+    required this.primaryColor,
+    required this.secondaryColor,
+    required this.surfaceColor,
+  }) : super(repaint: animation);
 
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
     final radius = Radius.circular(size.height / 2);
-    // Inset by half the stroke so the ring isn't clipped at the edges.
+
     final rrect = RRect.fromRectAndRadius(
       rect.deflate(strokeWidth / 2),
       radius,
@@ -101,12 +121,12 @@ class _GradientRingPainter extends CustomPainter {
       ..strokeWidth = strokeWidth
       ..shader = SweepGradient(
         transform: GradientRotation(animation.value * 2 * math.pi),
-        colors: const [
-          Color(0xFFC5E37A), // lime
-          Color(0xFF5E8E6E), // mid green
-          Color(0xFF1E3A2F), // deep green
-          Color(0xFF5E8E6E),
-          Color(0xFFC5E37A), // same as first so the loop is seamless
+        colors: [
+          primaryColor,
+          secondaryColor,
+          surfaceColor,
+          secondaryColor,
+          primaryColor,
         ],
       ).createShader(rect);
 
@@ -114,6 +134,10 @@ class _GradientRingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _GradientRingPainter old) =>
-      old.strokeWidth != strokeWidth;
+  bool shouldRepaint(covariant _GradientRingPainter old) {
+    return old.strokeWidth != strokeWidth ||
+        old.primaryColor != primaryColor ||
+        old.secondaryColor != secondaryColor ||
+        old.surfaceColor != surfaceColor;
+  }
 }

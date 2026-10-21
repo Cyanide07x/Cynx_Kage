@@ -1,7 +1,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../../theme/appcolors.dart';
 import '../../widgets/searchbar.dart';
 import 'account_action_button.dart';
 
@@ -42,8 +41,10 @@ class SupportScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: AppColors.appBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,7 +60,7 @@ class SupportScreen extends StatelessWidget {
                     .copyWith(scrollbars: false),
                 child: CustomScrollView(
                   slivers: [
-                    _buildIntroduction(),
+                    _buildIntroduction(context),
 
                     // Pins the search bar below the fixed header.
                     SliverPersistentHeader(
@@ -79,6 +80,8 @@ class SupportScreen extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
@@ -87,37 +90,37 @@ class SupportScreen extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: colors.outlineVariant),
               borderRadius: BorderRadius.circular(10),
             ),
             child: IconButton(
               padding: EdgeInsets.zero,
               onPressed: () => Navigator.of(context).maybePop(),
-              icon: const Icon(
+              icon: Icon(
                 Icons.arrow_back,
-                color: AppColors.text,
+                color: colors.onSurface,
                 size: 20,
               ),
             ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Help & Support',
                   style: TextStyle(
-                    color: AppColors.text,
+                    color: colors.onSurface,
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   "We've got your back.",
                   style: TextStyle(
-                    color: AppColors.textSecondary,
+                    color: colors.onSurfaceVariant,
                     fontSize: 14,
                   ),
                 ),
@@ -129,27 +132,29 @@ class SupportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildIntroduction() {
+  Widget _buildIntroduction(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       sliver: SliverToBoxAdapter(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'How can we\nhelp you?',
               style: TextStyle(
-                color: AppColors.text,
+                color: colors.onSurface,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 height: 1.1,
               ),
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               'Find answers or talk to our team.',
               style: TextStyle(
-                color: AppColors.textSecondary,
+                color: colors.onSurfaceVariant,
                 fontSize: 13,
               ),
             ),
@@ -161,16 +166,18 @@ class SupportScreen extends StatelessWidget {
   }
 
   Widget _buildSupportContent(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(20, 25, 20, 20),
       sliver: SliverToBoxAdapter(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Browse topics',
               style: TextStyle(
-                color: AppColors.text,
+                color: colors.onSurface,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -205,10 +212,10 @@ class SupportScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            const Text(
+            Text(
               'Quick answers',
               style: TextStyle(
-                color: AppColors.text,
+                color: colors.onSurface,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -236,6 +243,8 @@ class _FaqTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Theme(
@@ -243,8 +252,8 @@ class _FaqTile extends StatelessWidget {
           dividerColor: Colors.transparent,
         ),
         child: ExpansionTile(
-          collapsedBackgroundColor: AppColors.surface,
-          backgroundColor: AppColors.surface,
+          collapsedBackgroundColor: colors.surface,
+          backgroundColor: colors.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
@@ -253,15 +262,15 @@ class _FaqTile extends StatelessWidget {
           ),
           title: Text(
             faq.question,
-            style: const TextStyle(
-              color: AppColors.text,
+            style: TextStyle(
+              color: colors.onSurface,
               fontSize: 13,
               fontWeight: FontWeight.w700,
             ),
           ),
-          trailing: const Icon(
+          trailing: Icon(
             Icons.keyboard_arrow_down,
-            color: AppColors.textSecondary,
+            color: colors.onSurfaceVariant,
           ),
           children: [
             Padding(
@@ -270,8 +279,8 @@ class _FaqTile extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   faq.answer,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
                     fontSize: 12,
                     height: 1.5,
                   ),
@@ -302,7 +311,7 @@ class _SearchBarDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     return Container(
-      color: AppColors.appBackground,
+      color: Theme.of(context).scaffoldBackgroundColor,
       padding: const EdgeInsets.symmetric(
         horizontal: 20,
         vertical: 8,

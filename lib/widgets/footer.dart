@@ -1,15 +1,7 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// widgets/footer.dart
-// Custom bottom navigation bar used by [NavigationShell].
-// ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
-import '../theme/appcolors.dart';
 
 /// Bottom navigation bar with four tabs and an animated selection indicator.
-///
-/// The active tab is highlighted with [AppColors.primary] and an expanding
-/// underline dot. Inactive tabs render in [AppColors.textSecondary].
 ///
 /// Tab order: Home - Wishlist - Offers - Account
 class Footer extends StatelessWidget {
@@ -35,11 +27,14 @@ class Footer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+
     return Container(
       height: 80,
-      decoration: const BoxDecoration(
-        color: AppColors.appBackground,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(5),
         ),
       ),
@@ -57,16 +52,16 @@ class Footer extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Tab icon - lime when active, grey when inactive.
+                  // Tab icon
                   Icon(
                     icons[index],
                     color: isSelected
-                        ? AppColors.primary
-                        : AppColors.textSecondary,
+                        ? colors.primary
+                        : colors.onSurfaceVariant,
                   ),
                   const SizedBox(height: 5),
 
-                  // Animated underline dot - expands when active.
+                  // Animated underline dot
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
                     curve: Curves.easeInOut,
@@ -74,7 +69,7 @@ class Footer extends StatelessWidget {
                     height: 3,
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? AppColors.primary
+                          ? colors.primary
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(10),
                     ),

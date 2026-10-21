@@ -1,10 +1,5 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// screens/notifications/notification_card.dart
-// Individual notification row widget used in [NotificationScreen].
-// ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
-import '../../../theme/appcolors.dart';
 
 /// Displays a single notification entry with an icon, title, description,
 /// timestamp, and an optional unread indicator dot.
@@ -31,8 +26,7 @@ class NotificationCard extends StatelessWidget {
   /// Human-readable timestamp shown in the trailing column (e.g. '2m', '1hr').
   final String time;
 
-  /// When `true`, a small lime dot is rendered below the timestamp to indicate
-  /// that this notification has not been read.
+  /// When `true`, a small accent dot is rendered below the timestamp.
   final bool isUnread;
 
   /// Optional tap handler. The card is tappable only when this is non-null.
@@ -50,15 +44,17 @@ class NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: AppColors.appBackground,
+          color: colors.surface,
           border: Border.all(
-            color: AppColors.border,
+            color: colors.outlineVariant,
             width: 1,
           ),
           borderRadius: BorderRadius.circular(10),
@@ -66,35 +62,35 @@ class NotificationCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Icon badge ──────────────────────────────────────────────
+            // Icon badge
             Container(
               width: 36,
               height: 36,
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: AppColors.border,
+                  color: colors.outlineVariant,
                   width: 1,
                 ),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 icon,
-                color: AppColors.primary,
+                color: colors.primary,
                 size: 19,
               ),
             ),
 
             const SizedBox(width: 10),
 
-            // ── Title and description ───────────────────────────────────
+            // Title and description
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: AppColors.text,
+                    style: TextStyle(
+                      color: colors.onSurface,
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
@@ -102,8 +98,8 @@ class NotificationCard extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     description,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
                       fontSize: 11,
                       height: 1.3,
                     ),
@@ -114,24 +110,23 @@ class NotificationCard extends StatelessWidget {
 
             const SizedBox(width: 8),
 
-            // ── Timestamp and unread dot ──────────────────────────────
+            // Timestamp and unread dot
             Column(
               children: [
                 Text(
                   time,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
                     fontSize: 9,
                   ),
                 ),
                 if (isUnread) ...[
                   const SizedBox(height: 6),
-                  // Small lime circle = unread indicator.
                   Container(
                     width: 6,
                     height: 6,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
+                    decoration: BoxDecoration(
+                      color: colors.primary,
                       shape: BoxShape.circle,
                     ),
                   ),

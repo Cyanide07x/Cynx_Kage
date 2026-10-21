@@ -1,6 +1,5 @@
 
 import 'package:flutter/material.dart';
-import '../theme/appcolors.dart';
 
 class ProductDetails extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -22,6 +21,7 @@ class _ProductDetailsState extends State<ProductDetails> {
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
+    final colors = Theme.of(context).colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,8 +29,8 @@ class _ProductDetailsState extends State<ProductDetails> {
         // Product Name
         Text(
           product['name']?.toString() ?? 'Product Name',
-          style: const TextStyle(
-            color: AppColors.text,
+          style: TextStyle(
+            color: colors.onSurface,
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
@@ -41,8 +41,8 @@ class _ProductDetailsState extends State<ProductDetails> {
         // Product Price
         Text(
           '₹${product['price'] ?? 0}',
-          style: const TextStyle(
-            color: AppColors.text,
+          style: TextStyle(
+            color: colors.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -51,10 +51,10 @@ class _ProductDetailsState extends State<ProductDetails> {
         const SizedBox(height: 20),
 
         // Available Sizes
-        const Text(
+        Text(
           'Available Sizes',
           style: TextStyle(
-            color: AppColors.text,
+            color: colors.onSurface,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -85,18 +85,20 @@ class _ProductDetailsState extends State<ProductDetails> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.secondary
+                      ? colors.primary
                       : Colors.transparent,
                   border: Border.all(
-                    color: AppColors.border,
+                    color: colors.outline,
                     width: 1,
                   ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   sizeValue,
-                  style: const TextStyle(
-                    color: AppColors.text,
+                  style: TextStyle(
+                    color: isSelected
+                        ? colors.onPrimary
+                        : colors.onSurface,
                     fontSize: 14,
                   ),
                 ),
@@ -112,9 +114,9 @@ class _ProductDetailsState extends State<ProductDetails> {
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.appBackground,
+            color: Theme.of(context).scaffoldBackgroundColor,
             border: Border.all(
-              color: AppColors.border,
+              color: colors.outline,
               width: 1,
             ),
             borderRadius: BorderRadius.circular(12),
@@ -122,10 +124,10 @@ class _ProductDetailsState extends State<ProductDetails> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'PRODUCT DESCRIPTION',
                 style: TextStyle(
-                  color: AppColors.text,
+                  color: colors.onSurface,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 1.2,
@@ -137,7 +139,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                         'No description available.')
                     .toString(),
                 style: TextStyle(
-                  color: AppColors.text.withValues(alpha: 0.75),
+                  color: colors.onSurface.withValues(alpha: 0.75),
                   fontSize: 14,
                   height: 1.6,
                 ),

@@ -1,8 +1,8 @@
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../theme/appcolors.dart';
 import '../../widgets/offer_filter_button.dart';
 import '../../widgets/flash_sale_card.dart';
 import '../../widgets/coupon_card.dart';
@@ -70,16 +70,16 @@ class _OfferScreenState extends State<OfferScreen> {
 
         final nextIndex = currentFlashIndex + 1;
 
-if (nextIndex < flashSales.length) {
-  _pageController.animateToPage(
-    nextIndex,
-    duration: const Duration(milliseconds: 400),
-    curve: Curves.easeInOut,
-  );
-} else {
-  // Loop from the last card back to the first.
-  _pageController.jumpToPage(0);
-}
+        if (nextIndex < flashSales.length) {
+          _pageController.animateToPage(
+            nextIndex,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+          );
+        } else {
+          // Loop from the last card back to the first.
+          _pageController.jumpToPage(0);
+        }
       },
     );
   }
@@ -93,8 +93,11 @@ if (nextIndex < flashSales.length) {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: AppColors.appBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20),
@@ -111,7 +114,7 @@ if (nextIndex < flashSales.length) {
                     height: 44,
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: AppColors.border,
+                        color: colors.outlineVariant,
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(10),
@@ -121,31 +124,31 @@ if (nextIndex < flashSales.length) {
                       onPressed: () {
                         Navigator.of(context).maybePop();
                       },
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.arrow_back,
-                        color: AppColors.text,
+                        color: colors.onSurface,
                         size: 20,
                       ),
                     ),
                   ),
                   const SizedBox(width: 20),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Offers',
                           style: TextStyle(
-                            color: AppColors.text,
+                            color: colors.onSurface,
                             fontSize: 26,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           'Deals made for movers.',
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: colors.onSurfaceVariant,
                             fontSize: 13,
                           ),
                         ),
@@ -229,8 +232,7 @@ if (nextIndex < flashSales.length) {
 
                             // Dynamic dot indicators
                             Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: List.generate(
                                 flashSales.length,
                                 (index) {
@@ -241,16 +243,15 @@ if (nextIndex < flashSales.length) {
                                     duration: const Duration(
                                       milliseconds: 250,
                                     ),
-                                    margin:
-                                        const EdgeInsets.symmetric(
+                                    margin: const EdgeInsets.symmetric(
                                       horizontal: 4,
                                     ),
                                     width: isActive ? 22 : 7,
                                     height: 7,
                                     decoration: BoxDecoration(
                                       color: isActive
-                                          ? AppColors.primary
-                                          : AppColors.border,
+                                          ? colors.primary
+                                          : colors.outlineVariant,
                                       borderRadius:
                                           BorderRadius.circular(10),
                                     ),
@@ -266,10 +267,10 @@ if (nextIndex < flashSales.length) {
 
                       // Coupons section
                       if (selectedFilter != 'Flash deals') ...[
-                        const Text(
+                        Text(
                           'Your coupons',
                           style: TextStyle(
-                            color: AppColors.text,
+                            color: colors.onSurface,
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                           ),
@@ -293,7 +294,8 @@ if (nextIndex < flashSales.length) {
 
                         const CouponCard(
                           discount: 'B2G1',
-                          description: 'Buy 2 Get 1 On your first order',
+                          description:
+                              'Buy 2 Get 1 On your first order',
                           code: 'B2G1',
                         ),
                         const SizedBox(height: 20),

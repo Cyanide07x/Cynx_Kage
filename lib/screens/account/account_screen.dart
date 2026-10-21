@@ -1,3 +1,4 @@
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'setting_screen.dart';
 import 'support_screen.dart';
 
-import '../../theme/appcolors.dart';
 import '../login/login_screen.dart';
 import 'tracker.dart';
 import 'account_action_button.dart';
@@ -108,14 +108,16 @@ class _AccountScreenState extends State<AccountScreen> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (dialogContext, setDialogState) {
+            final theme = Theme.of(dialogContext);
+            final colors = theme.colorScheme;
             final hasPhoto = _photoPath != null &&
                 File(_photoPath!).existsSync();
 
             return AlertDialog(
-              backgroundColor: AppColors.surface,
-              title: const Text(
+              backgroundColor: colors.surface,
+              title: Text(
                 'Edit profile',
-                style: TextStyle(color: AppColors.text),
+                style: TextStyle(color: colors.onSurface),
               ),
               content: SingleChildScrollView(
                 child: Column(
@@ -134,9 +136,9 @@ class _AccountScreenState extends State<AccountScreen> {
                             height: 88,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppColors.deepForest,
+                              color: colors.surfaceContainerHighest,
                               border: Border.all(
-                                color: AppColors.primary,
+                                color: colors.primary,
                                 width: 2,
                               ),
                               image: hasPhoto
@@ -150,8 +152,8 @@ class _AccountScreenState extends State<AccountScreen> {
                                 ? Center(
                                     child: Text(
                                       _initials,
-                                      style: const TextStyle(
-                                        color: AppColors.primary,
+                                      style: TextStyle(
+                                        color: colors.primary,
                                         fontSize: 28,
                                         fontWeight: FontWeight.w900,
                                       ),
@@ -164,14 +166,14 @@ class _AccountScreenState extends State<AccountScreen> {
                             bottom: 0,
                             child: Container(
                               padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
+                              decoration: BoxDecoration(
+                                color: colors.primary,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.camera_alt_outlined,
                                 size: 16,
-                                color: AppColors.appBackground,
+                                color: colors.onPrimary,
                               ),
                             ),
                           ),
@@ -179,10 +181,10 @@ class _AccountScreenState extends State<AccountScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Tap the avatar to change photo',
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        color: colors.onSurfaceVariant,
                         fontSize: 12,
                       ),
                     ),
@@ -190,21 +192,21 @@ class _AccountScreenState extends State<AccountScreen> {
                     TextField(
                       controller: _nameController,
                       textCapitalization: TextCapitalization.words,
-                      style: const TextStyle(color: AppColors.text),
+                      style: TextStyle(color: colors.onSurface),
                       decoration: InputDecoration(
                         labelText: 'Display name',
-                        labelStyle: const TextStyle(
-                          color: AppColors.textSecondary,
+                        labelStyle: TextStyle(
+                          color: colors.onSurfaceVariant,
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
-                            color: AppColors.border,
+                          borderSide: BorderSide(
+                            color: colors.outlineVariant,
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
-                            color: AppColors.primary,
+                          borderSide: BorderSide(
+                            color: colors.primary,
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -215,8 +217,8 @@ class _AccountScreenState extends State<AccountScreen> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         _email,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
+                        style: TextStyle(
+                          color: colors.onSurfaceVariant,
                           fontSize: 12,
                         ),
                       ),
@@ -229,9 +231,9 @@ class _AccountScreenState extends State<AccountScreen> {
                   onPressed: _isSavingProfile
                       ? null
                       : () => Navigator.pop(dialogContext),
-                  child: const Text(
+                  child: Text(
                     'Cancel',
-                    style: TextStyle(color: AppColors.textSecondary),
+                    style: TextStyle(color: colors.onSurfaceVariant),
                   ),
                 ),
                 ElevatedButton(
@@ -243,7 +245,9 @@ class _AccountScreenState extends State<AccountScreen> {
                           if (name.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Display name cannot be empty.'),
+                                content: Text(
+                                  'Display name cannot be empty.',
+                                ),
                               ),
                             );
                             return;
@@ -274,7 +278,9 @@ class _AccountScreenState extends State<AccountScreen> {
 
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Profile updated successfully.'),
+                                content: Text(
+                                  'Profile updated successfully.',
+                                ),
                               ),
                             );
                           } on FirebaseAuthException catch (e) {
@@ -308,8 +314,8 @@ class _AccountScreenState extends State<AccountScreen> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.appBackground,
+                    backgroundColor: colors.primary,
+                    foregroundColor: colors.onPrimary,
                   ),
                   child: _isSavingProfile
                       ? const SizedBox(
@@ -329,8 +335,11 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.appBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(
@@ -351,7 +360,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     height: 44,
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: AppColors.border,
+                        color: colors.outlineVariant,
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(10),
@@ -359,33 +368,33 @@ class _AccountScreenState extends State<AccountScreen> {
                     child: IconButton(
                       padding: EdgeInsets.zero,
                       onPressed: () {
-                        Navigator.of(context).maybePop();    // Back button action
+                        Navigator.of(context).maybePop();
                       },
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.arrow_back,
-                        color: AppColors.text,
+                        color: colors.onSurface,
                         size: 20,
                       ),
                     ),
                   ),
                   const SizedBox(width: 20),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Account',
                           style: TextStyle(
-                            color: AppColors.text,
+                            color: colors.onSurface,
                             fontSize: 26,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           'Your gear, your rules.',
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: colors.onSurfaceVariant,
                             fontSize: 13,
                           ),
                         ),
@@ -405,9 +414,9 @@ class _AccountScreenState extends State<AccountScreen> {
                     height: 76,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.surface,
+                      color: colors.surface,
                       border: Border.all(
-                        color: AppColors.primary,
+                        color: colors.primary,
                         width: 2,
                       ),
                       image: _photoPath != null &&
@@ -423,8 +432,8 @@ class _AccountScreenState extends State<AccountScreen> {
                         ? Center(
                             child: Text(
                               _initials,
-                              style: const TextStyle(
-                                color: AppColors.primary,
+                              style: TextStyle(
+                                color: colors.primary,
                                 fontSize: 25,
                                 fontWeight: FontWeight.w900,
                               ),
@@ -441,8 +450,8 @@ class _AccountScreenState extends State<AccountScreen> {
                           _displayName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.text,
+                          style: TextStyle(
+                            color: colors.onSurface,
                             fontSize: 26,
                             fontWeight: FontWeight.w800,
                           ),
@@ -452,8 +461,8 @@ class _AccountScreenState extends State<AccountScreen> {
                           _email,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
+                          style: TextStyle(
+                            color: colors.onSurfaceVariant,
                             fontSize: 12,
                           ),
                         ),
@@ -467,7 +476,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: AppColors.border,
+                        color: colors.outlineVariant,
                         width: 1,
                       ),
                     ),
@@ -475,9 +484,9 @@ class _AccountScreenState extends State<AccountScreen> {
                       padding: EdgeInsets.zero,
                       tooltip: 'Edit profile',
                       onPressed: _editProfile,
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.edit_outlined,
-                        color: AppColors.primary,
+                        color: colors.primary,
                         size: 19,
                       ),
                     ),
@@ -541,6 +550,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   );
                 },
               ),
+
               const SizedBox(height: 12),
 
               AccountActionButton(
@@ -554,20 +564,22 @@ class _AccountScreenState extends State<AccountScreen> {
                   );
                 },
               ),
+
               const SizedBox(height: 12),
 
               AccountActionButton(
                 icon: Icons.headset_mic_outlined,
                 title: 'Help & Support',
                 onTap: () {
-                  Navigator.push(context, 
-                  MaterialPageRoute(
-                    builder: (context) => const SupportScreen(),
-                  ),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SupportScreen(),
+                    ),
                   );
-                  
                 },
               ),
+
               const SizedBox(height: 12),
 
               AccountActionButton(
@@ -575,11 +587,11 @@ class _AccountScreenState extends State<AccountScreen> {
                 title: 'Settings',
                 onTap: () {
                   Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => const SettingScreen(),
-    ),
-  );
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingScreen(),
+                    ),
+                  );
                 },
               ),
 
@@ -605,7 +617,9 @@ class _AccountScreenState extends State<AccountScreen> {
 
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Unable to log out. Please try again.'),
+                        content: Text(
+                          'Unable to log out. Please try again.',
+                        ),
                       ),
                     );
                   }

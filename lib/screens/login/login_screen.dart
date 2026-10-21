@@ -1,11 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// screens/login/login_screen.dart
-// Firebase email/password login screen for Cynx Kage.
-//
-// On success the user is routed to [NavigationShell].
-// Unauthenticated users can also tap "Continue as guest" to browse without
-// an account, or navigate to [SignUpScreen] to create one.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
@@ -23,21 +15,12 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // ── Controllers & state ───────────────────────────────────────────────────
-
-  /// Text controller for the email input field.
+  // Controllers & state
   final TextEditingController emailController = TextEditingController();
-
-  /// Text controller for the password input field.
   final TextEditingController passwordController = TextEditingController();
 
-  /// Whether the password characters are hidden.
   bool obscurePassword = true;
-
-  /// Whether a login network request is in progress.
   bool isLoading = false;
-
-  // ── Lifecycle ────────────────────────────────────────────────────────────
 
   @override
   void dispose() {
@@ -46,12 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // ── Actions ──────────────────────────────────────────────────────────────
-
   /// Validates the form and attempts a Firebase email/password sign-in.
-  ///
-  /// On success, replaces the current route with [NavigationShell].
-  /// On failure, shows a user-friendly [SnackBar] message.
   Future<void> login() async {
     final email = emailController.text.trim();
     final password = passwordController.text;
@@ -80,7 +58,6 @@ class _LoginScreenState extends State<LoginScreen> {
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
 
-      // Map Firebase error codes to human-readable messages.
       String message;
       switch (e.code) {
         case 'invalid-email':
@@ -116,14 +93,14 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// Shows a [SnackBar] with the given [message].
+  /// Shows a SnackBar with the given message.
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
   }
 
-  /// Navigates forward to [SignUpScreen].
+  /// Navigates forward to SignUpScreen.
   void goToSignup() {
     Navigator.push(
       context,
@@ -133,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  /// Skips login and navigates to [NavigationShell] as a guest user.
+  /// Skips login and navigates to NavigationShell as a guest user.
   void continueAsGuest() {
     Navigator.pushReplacement(
       context,
@@ -143,12 +120,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF263A30), // deep forest green
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -161,25 +139,25 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Heading ────────────────────────────────────────────
-                  const Text(
+                  // Heading
+                  Text(
                     'Welcome back',
                     style: TextStyle(
-                      color: Color(0xFFF0F4E6),
+                      color: colors.onSurface,
                       fontSize: 42,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
+                  Text(
                     'Log in to see your orders and save your bag.',
                     style: TextStyle(
-                      color: Color(0xFFB4C6B0),
+                      color: colors.onSurfaceVariant,
                       fontSize: 18,
                     ),
                   ),
 
-                  // ── Email field ──────────────────────────────────────────
+                  // Email field
                   const SizedBox(height: 34),
                   _label('Email'),
                   const SizedBox(height: 8),
@@ -189,13 +167,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     keyboardType: TextInputType.emailAddress,
                   ),
 
-                  // ── Password field ───────────────────────────────────────
+                  // Password field
                   const SizedBox(height: 22),
                   _label('Password'),
                   const SizedBox(height: 8),
                   _passwordField(),
 
-                  // ── Log in button ───────────────────────────────────────
+                  // Log in button
                   const SizedBox(height: 34),
                   SizedBox(
                     width: double.infinity,
@@ -203,22 +181,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: ElevatedButton(
                       onPressed: isLoading ? null : login,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFBBD58E),
-                        foregroundColor: const Color(0xFF263A30),
+                        backgroundColor: colors.primary,
+                        foregroundColor: colors.onPrimary,
                         disabledBackgroundColor:
-                            const Color(0xFFBBD58E).withValues(alpha: 0.6),
+                            colors.primary.withValues(alpha: 0.6),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(35),
                         ),
                       ),
                       child: isLoading
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 24,
                               height: 24,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2.5,
-                                color: Color(0xFF263A30),
+                                color: colors.onPrimary,
                               ),
                             )
                           : const Text(
@@ -231,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                  // ── Guest button ───────────────────────────────────────
+                  // Guest button
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
@@ -239,8 +217,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: OutlinedButton(
                       onPressed: isLoading ? null : continueAsGuest,
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFFF0F4E6),
-                        side: const BorderSide(color: Color(0xFF588157)),
+                        foregroundColor: colors.onSurface,
+                        side: BorderSide(color: colors.outline),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(35),
                         ),
@@ -255,21 +233,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                  // ── Sign-up link ───────────────────────────────────────
+                  // Sign-up link
                   const SizedBox(height: 38),
                   Center(
                     child: RichText(
                       text: TextSpan(
-                        style: const TextStyle(
-                          color: Color(0xFFB4C6B0),
+                        style: TextStyle(
+                          color: colors.onSurfaceVariant,
                           fontSize: 17,
                         ),
                         children: [
                           const TextSpan(text: 'New here? '),
                           TextSpan(
                             text: 'Create account',
-                            style: const TextStyle(
-                              color: Color(0xFFBBD58E),
+                            style: TextStyle(
+                              color: colors.primary,
                               fontWeight: FontWeight.w700,
                               decoration: TextDecoration.underline,
                             ),
@@ -289,14 +267,12 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // ── Private widget builders ────────────────────────────────────────────
-
-  /// Renders a bold field label (e.g. "Email", "Password").
+  /// Renders a bold field label.
   Widget _label(String text) {
     return Text(
       text,
-      style: const TextStyle(
-        color: Color(0xFFF0F4E6),
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
         fontSize: 16,
         fontWeight: FontWeight.w700,
       ),
@@ -304,38 +280,36 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   /// A reusable text input field styled for the login form.
-  ///
-  /// [controller] — the associated [TextEditingController].
-  /// [hintText]   — placeholder shown when the field is empty.
-  /// [keyboardType] — optional keyboard variant (default: text).
   Widget _textField({
     required TextEditingController controller,
     String hintText = '',
     TextInputType? keyboardType,
   }) {
+    final colors = Theme.of(context).colorScheme;
+
     return SizedBox(
       height: 62,
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
         autocorrect: false,
-        style: const TextStyle(
-          color: Color(0xFFF0F4E6),
+        style: TextStyle(
+          color: colors.onSurface,
           fontSize: 17,
         ),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: Color(0xFFB4C6B0)),
+          hintStyle: TextStyle(color: colors.onSurfaceVariant),
           filled: true,
-          fillColor: const Color(0xFF3A5A40),
+          fillColor: colors.surfaceContainerHighest,
           contentPadding: const EdgeInsets.symmetric(horizontal: 20),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(17),
-            borderSide: const BorderSide(color: Color(0xFF588157)),
+            borderSide: BorderSide(color: colors.outline),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(17),
-            borderSide: const BorderSide(color: Color(0xFFBBD58E)),
+            borderSide: BorderSide(color: colors.primary),
           ),
         ),
       ),
@@ -344,6 +318,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// Password field with a Show/Hide toggle suffix button.
   Widget _passwordField() {
+    final colors = Theme.of(context).colorScheme;
+
     return SizedBox(
       height: 62,
       child: TextField(
@@ -351,15 +327,15 @@ class _LoginScreenState extends State<LoginScreen> {
         obscureText: obscurePassword,
         autocorrect: false,
         enableSuggestions: false,
-        style: const TextStyle(
-          color: Color(0xFFF0F4E6),
+        style: TextStyle(
+          color: colors.onSurface,
           fontSize: 17,
         ),
         decoration: InputDecoration(
           hintText: 'Your password',
-          hintStyle: const TextStyle(color: Color(0xFFB4C6B0)),
+          hintStyle: TextStyle(color: colors.onSurfaceVariant),
           filled: true,
-          fillColor: const Color(0xFF3A5A40),
+          fillColor: colors.surfaceContainerHighest,
           contentPadding: const EdgeInsets.only(left: 20),
           suffixIcon: TextButton(
             onPressed: () {
@@ -369,19 +345,19 @@ class _LoginScreenState extends State<LoginScreen> {
             },
             child: Text(
               obscurePassword ? 'Show' : 'Hide',
-              style: const TextStyle(
-                color: Color(0xFFBBD58E),
+              style: TextStyle(
+                color: colors.primary,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(17),
-            borderSide: const BorderSide(color: Color(0xFF588157)),
+            borderSide: BorderSide(color: colors.outline),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(17),
-            borderSide: const BorderSide(color: Color(0xFFBBD58E)),
+            borderSide: BorderSide(color: colors.primary),
           ),
         ),
       ),

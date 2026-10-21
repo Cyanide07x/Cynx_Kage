@@ -1,15 +1,7 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// widgets/offer_filter_button.dart
-// Compact toggle chip used to filter offers by type.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
-import '../theme/appcolors.dart';
 
 /// A small outlined button that acts as a filter chip on the Offers screen.
-///
-/// When [isSelected] is `true` the button renders with a lime border and a
-/// dark-green background to indicate the active filter.
 class OfferFilterButton extends StatelessWidget {
   /// The filter label displayed on the button (e.g. 'All', 'Coupons').
   final String title;
@@ -29,18 +21,17 @@ class OfferFilterButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return OutlinedButton(
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.text,
-        // Active chip gets a subtle dark-green fill.
+        foregroundColor: colors.onSurface,
         backgroundColor: isSelected
-            ? const Color(0xFF202719)
+            ? colors.primary.withValues(alpha: 0.12)
             : Colors.transparent,
         side: BorderSide(
-          color: isSelected
-              ? const Color(0xFFC5E37A) // lime border when active
-              : AppColors.border,
+          color: isSelected ? colors.primary : colors.outlineVariant,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),

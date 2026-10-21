@@ -1,10 +1,5 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// widgets/header.dart
-// App-wide top header bar shown inside [NavigationShell].
-// ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
-import '../theme/appcolors.dart';
 
 /// Persistent top bar displayed at the top of [NavigationShell].
 ///
@@ -12,15 +7,11 @@ import '../theme/appcolors.dart';
 /// - The "CYNX KAGE" wordmark on the left.
 /// - A notification bell icon on the right.
 /// - A shopping-bag icon on the right.
-///
-/// Both icon buttons are optional; pass a callback to make them interactive.
 class Header extends StatelessWidget {
   /// Called when the notification bell icon is tapped.
-  /// If `null`, the icon is still shown but does nothing.
   final VoidCallback? onNotificationTap;
 
   /// Called when the shopping-bag icon is tapped.
-  /// If `null`, the icon is still shown but does nothing.
   final VoidCallback? onCartTap;
 
   const Header({
@@ -31,24 +22,27 @@ class Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+
     return Container(
       height: 60,
       margin: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: const BoxDecoration(
-        color: AppColors.appBackground,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(30),
         ),
       ),
       child: Row(
         children: [
-          // ── Brand wordmark ────────────────────────────────────────────────
-          const Padding(
-            padding: EdgeInsets.only(left: 10),
+          // Brand wordmark
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
             child: Text(
               'CYNX KAGE',
               style: TextStyle(
-                color: AppColors.text,
+                color: colors.onSurface,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 2,
@@ -58,15 +52,15 @@ class Header extends StatelessWidget {
 
           const Spacer(),
 
-          // ── Action icons ──────────────────────────────────────────────
+          // Action icons
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            color: AppColors.textSecondary,
+            color: colors.onSurfaceVariant,
             onPressed: onNotificationTap,
           ),
           IconButton(
             icon: const Icon(Icons.shopping_bag_outlined),
-            color: AppColors.textSecondary,
+            color: colors.onSurfaceVariant,
             onPressed: onCartTap,
           ),
           const SizedBox(width: 5),

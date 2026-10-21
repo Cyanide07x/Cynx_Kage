@@ -2,8 +2,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../theme/appcolors.dart';
-
 
 class FlashSaleCard extends StatefulWidget {
   final DateTime endsAt;
@@ -48,9 +46,7 @@ class _FlashSaleCardState extends State<FlashSaleCard> {
     if (!mounted) return;
 
     setState(() {
-      remaining = difference.isNegative
-          ? Duration.zero
-          : difference;
+      remaining = difference.isNegative ? Duration.zero : difference;
     });
   }
 
@@ -69,11 +65,11 @@ class _FlashSaleCardState extends State<FlashSaleCard> {
     super.dispose();
   }
 
-  String _twoDigits(int value) =>
-      value.toString().padLeft(2, '0');
+  String _twoDigits(int value) => value.toString().padLeft(2, '0');
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final hours = remaining.inHours;
     final minutes = remaining.inMinutes % 60;
     final seconds = remaining.inSeconds % 60;
@@ -83,16 +79,16 @@ class _FlashSaleCardState extends State<FlashSaleCard> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: colors.primary,
         borderRadius: BorderRadius.circular(25),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-          widget.saleTitle,
-            style: const TextStyle(
-              color: AppColors.appBackground,
+            widget.saleTitle,
+            style: TextStyle(
+              color: colors.onPrimary,
               fontSize: 11,
               fontWeight: FontWeight.w900,
               letterSpacing: 1.5,
@@ -101,8 +97,8 @@ class _FlashSaleCardState extends State<FlashSaleCard> {
           const SizedBox(height: 6),
           Text(
             widget.discountText,
-            style: const TextStyle(
-              color: AppColors.appBackground,
+            style: TextStyle(
+              color: colors.onPrimary,
               fontSize: 34,
               height: 1,
               fontWeight: FontWeight.w900,
@@ -112,8 +108,8 @@ class _FlashSaleCardState extends State<FlashSaleCard> {
           const SizedBox(height: 5),
           Text(
             widget.description,
-            style: const TextStyle(
-              color: AppColors.deepForest,
+            style: TextStyle(
+              color: colors.onPrimary.withValues(alpha: 0.8),
               fontSize: 12,
             ),
           ),
@@ -129,9 +125,11 @@ class _FlashSaleCardState extends State<FlashSaleCard> {
               FilledButton(
                 onPressed: isExpired ? null : widget.onShopNow,
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.appBackground,
-                  foregroundColor: AppColors.text,
-                  disabledBackgroundColor: AppColors.deepForest,
+                  backgroundColor: colors.surface,
+                  foregroundColor: colors.onSurface,
+                  disabledBackgroundColor: colors.onPrimary.withValues(
+                    alpha: 0.25,
+                  ),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 18,
                     vertical: 11,
@@ -154,19 +152,21 @@ class _FlashSaleCardState extends State<FlashSaleCard> {
   }
 
   Widget _timeBox(String value) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 9,
         vertical: 8,
       ),
       decoration: BoxDecoration(
-        color: AppColors.appBackground,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(9),
       ),
       child: Text(
         value,
-        style: const TextStyle(
-          color: AppColors.primary,
+        style: TextStyle(
+          color: colors.primary,
           fontSize: 15,
           fontWeight: FontWeight.w800,
         ),
