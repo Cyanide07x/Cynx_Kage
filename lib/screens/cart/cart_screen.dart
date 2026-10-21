@@ -15,6 +15,10 @@ class CartScreen extends StatefulWidget {
 class _CartScreenState extends State<CartScreen> {
   // Cart starts empty until products are added.
   List<CartItem> get _cartItems => CartController.instance.items;
+  
+  bool _isLoading = true;
+  String? _loadError;
+
 
   static const double _freeDeliveryThreshold = 1700;
   static const double _deliveryCharge = 99;
@@ -43,19 +47,73 @@ class _CartScreenState extends State<CartScreen> {
 
   String _formatPrice(double price) => '₹${price.toStringAsFixed(0)}';
 
-  void _updateQuantity(CartItem item, int quantity) {
+  Future<void> _updateQuantity(CartItem item, int quantity) async {
     if (quantity < 1) return;
 
-    setState(() {
-      item.quantity = quantity;
-    });
+    try {
+      await CartController.instance.updateQuantity(item, quantity);
+
+      if (!mounted) return;
+      setState(() {});
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not update quantity. Please try again.'),
+        ),
+      );
+    }
   }
 
-  void _removeItem(CartItem item) {
-    setState(() {
-      _cartItems.remove(item);
-    });
+  Future<void> _removeItem(CartItem item) async {
+    try {
+      await CartController.instance.removeItem(item);
+
+      if (!mounted) return;
+      setState(() {});
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not remove item. Please try again.'),
+        ),
+      );
+    }
   }
+
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadCart();
+  }
+
+  Future<void> _loadCart() async {
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
+
+    try {
+      await CartController.instance.loadCart();
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+        _loadError = 'Could not load your cart. Please try again.';
+      });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -133,9 +191,33 @@ class _CartScreenState extends State<CartScreen> {
             const SizedBox(height: 24),
 
             Expanded(
-              child: _cartItems.isEmpty
-                  ? _buildEmptyCart()
-                  : _buildCartContent(),
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : _loadError != null
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _loadError!,
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 12),
+                                OutlinedButton(
+                                  onPressed: _loadCart,
+                                  child: const Text('Retry'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : _cartItems.isEmpty
+                          ? _buildEmptyCart()
+                          : _buildCartContent(),
             ),
           ],
         ),

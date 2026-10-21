@@ -240,7 +240,8 @@ class _ProductPageState extends State<ProductPage>
 
   // ADD TO CART
 
-  void _addToCart() {
+
+  Future<void> _addToCart() async {
     if (_selectedSize == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -265,24 +266,43 @@ class _ProductPageState extends State<ProductPage>
 
     final imageUrl = (product['imageUrl'] ?? '').toString();
 
-    CartController.instance.addItem(
-      CartItem(
-        productId: productId,
-        name: (product['name'] ?? 'Product').toString(),
-        imageUrl: imageUrl,
-        price: price,
-        size: _selectedSize!,
-        color: (product['color'] ?? 'Default').toString(),
-      ),
-    );
+    try {
+      await CartController.instance.addItem(
+        CartItem(
+          productId: productId,
+          name: (product['name'] ?? 'Product').toString(),
+          imageUrl: imageUrl,
+          price: price,
+          size: _selectedSize!,
+          color: (product['color'] ?? 'Default').toString(),
+        ),
+      );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Product added to cart!'),
-      ),
-    );
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Product added to cart!'),
+        ),
+      );
+      
+} catch (error, stackTrace) {
+  debugPrint('ADD TO CART ERROR: $error');
+  debugPrint('STACK TRACE: $stackTrace');
+
+  if (!mounted) return;
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('Cart error: $error'),
+      duration: const Duration(seconds: 8),
+    ),
+  );
+}
+
   }
 
+  
   Widget _buildCartFooter() {
     return SafeArea(
       child: Padding(
@@ -295,6 +315,8 @@ class _ProductPageState extends State<ProductPage>
       ),
     );
   }
+
+
 
   // INITIALIZATION
 
