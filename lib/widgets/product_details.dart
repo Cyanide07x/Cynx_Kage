@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class ProductDetails extends StatefulWidget {
@@ -75,7 +74,6 @@ class _ProductDetailsState extends State<ProductDetails> {
                   selectedSize = sizeValue;
                 });
 
-                // Send the selected size to ProductPage.
                 widget.onSizeChanged(sizeValue);
               },
               child: AnimatedContainer(
@@ -106,48 +104,60 @@ class _ProductDetailsState extends State<ProductDetails> {
             );
           }).toList(),
         ),
-
-        const SizedBox(height: 12),
-
-        // Product Description Box
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            border: Border.all(
-              color: colors.outline,
-              width: 1,
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'PRODUCT DESCRIPTION',
-                style: TextStyle(
-                  color: colors.onSurface,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                (product['description'] ??
-                        'No description available.')
-                    .toString(),
-                style: TextStyle(
-                  color: colors.onSurface.withValues(alpha: 0.75),
-                  fontSize: 14,
-                  height: 1.6,
-                ),
-              ),
-            ],
-          ),
-        ),
       ],
+    );
+  }
+}
+
+// Full-width Product Description
+class ProductDescription extends StatelessWidget {
+  final Map<String, dynamic> product;
+
+  const ProductDescription({
+    super.key,
+    required this.product,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        border: Border.all(
+          color: colors.outline,
+          width: 1,
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'PRODUCT DESCRIPTION',
+            style: TextStyle(
+              color: colors.onSurface,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 2,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            (product['description'] ??
+                    'No description available.')
+                .toString(),
+            style: TextStyle(
+              color: colors.onSurface.withValues(alpha: 0.75),
+              fontSize: 14,
+              height: 1.75,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

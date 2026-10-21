@@ -1,4 +1,3 @@
-
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -31,8 +30,6 @@ class _ProductPageState extends State<ProductPage>
   late final PageController _pageController;
   late final List<String> _images;
 
-  // Use a real, non-empty product identifier.
-  // Never convert a missing ID into the string "null".
   String get _productId {
     final product = widget.product;
 
@@ -78,18 +75,25 @@ class _ProductPageState extends State<ProductPage>
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.only(left: 5, right: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 25),
-                _buildHeader(),
-                const SizedBox(height: 25),
-                _buildProductImage(),
-                const SizedBox(height: 12),
-                _buildImageIndicators(),
-                const SizedBox(height: 24),
 
+                _buildHeader(),
+
+                const SizedBox(height: 25),
+
+                _buildProductImage(),
+
+                const SizedBox(height: 25),
+
+                _buildImageIndicators(),
+
+                const SizedBox(height: 25),
+
+                // Product information and wishlist stay together.
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -103,12 +107,15 @@ class _ProductPageState extends State<ProductPage>
                         },
                       ),
                     ),
+
                     const SizedBox(width: 12),
 
-                    // Only show the heart when a valid product ID exists.
                     if (_productId.isNotEmpty)
                       Padding(
-                        padding: const EdgeInsets.only(top: 2, right: 4),
+                        padding: const EdgeInsets.only(
+                          top: 2,
+                          right: 4,
+                        ),
                         child: WishlistIcon(
                           productId: _productId,
                           name: _productName,
@@ -118,6 +125,15 @@ class _ProductPageState extends State<ProductPage>
                         ),
                       ),
                   ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // FULL-WIDTH DESCRIPTION BOX.
+                // This is outside the Row, so it isn't constrained
+                // by the width reserved for the wishlist icon.
+                ProductDescription(
+                  product: widget.product,
                 ),
 
                 const SizedBox(height: 20),
@@ -322,6 +338,7 @@ class _ProductPageState extends State<ProductPage>
           ),
         ),
       );
+
       debugPrint('ADD TO CART: Missing product ID: ${widget.product}');
       return;
     }
@@ -483,7 +500,6 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
               );
             },
           ),
-
           Positioned(
             top: MediaQuery.of(context).padding.top + 12,
             right: 16,
@@ -497,7 +513,6 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
               ),
             ),
           ),
-
           if (widget.images.length > 1)
             Positioned(
               bottom: MediaQuery.of(context).padding.bottom + 24,
