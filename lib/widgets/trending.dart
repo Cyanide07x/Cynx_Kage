@@ -1,7 +1,9 @@
-
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+
+import 'wishlist_icon.dart';
 
 class Trending extends StatelessWidget {
   const Trending({super.key});
@@ -18,7 +20,6 @@ class Trending extends StatelessWidget {
 
     return Column(
       children: [
-        // Trending heading
         Align(
           alignment: Alignment.centerLeft,
           child: Padding(
@@ -46,10 +47,7 @@ class Trending extends StatelessWidget {
             ),
           ),
         ),
-
         const SizedBox(height: 12),
-
-        // Featured products from Firestore
         StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: productsStream,
           builder: (context, snapshot) {
@@ -58,9 +56,7 @@ class Trending extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 child: Text(
                   'Unable to load trending products.',
-                  style: TextStyle(
-                    color: colors.onSurfaceVariant,
-                  ),
+                  style: TextStyle(color: colors.onSurfaceVariant),
                 ),
               );
             }
@@ -68,9 +64,7 @@ class Trending extends StatelessWidget {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Padding(
                 padding: EdgeInsets.all(30),
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: Center(child: CircularProgressIndicator()),
               );
             }
 
@@ -82,9 +76,7 @@ class Trending extends StatelessWidget {
                 child: Center(
                   child: Text(
                     'No featured products available.',
-                    style: TextStyle(
-                      color: colors.onSurfaceVariant,
-                    ),
+                    style: TextStyle(color: colors.onSurfaceVariant),
                   ),
                 ),
               );
@@ -103,13 +95,25 @@ class Trending extends StatelessWidget {
                 childAspectRatio: 0.78,
               ),
               itemBuilder: (context, index) {
-                final product = products[index].data();
+                final document = products[index];
+                final product = document.data();
+                final rawPrice = product['price'];
+
+                final price = rawPrice is num
+                    ? rawPrice.toDouble()
+                    : double.tryParse(rawPrice?.toString() ?? '') ?? 0.0;
+
+                final imageUrl =
+                    (product['imageUrl'] ?? '').toString();
 
                 return TrendingProductCard(
-                  name: (product['name'] ?? 'Unnamed product')
-                      .toString(),
-                  price: 'Rs. ${(product['price'] ?? 0).toString()}',
-                  imageAsset: (product['imageUrl'] ?? '').toString(),
+                  productId: document.id,
+                  name: (product['name'] ?? 'Unnamed product').toString(),
+                  price: 'Rs. ${price.toStringAsFixed(0)}',
+                  productPrice: price,
+                  imageAsset: imageUrl,
+                  description:
+                      (product['description'] ?? '').toString(),
                 );
               },
             );
@@ -125,11 +129,19 @@ class TrendingProductCard extends StatefulWidget {
   final String price;
   final String? imageAsset;
 
+  // Optional to preserve compatibility with existing card usages.
+  final String? productId;
+  final double? productPrice;
+  final String description;
+
   const TrendingProductCard({
     super.key,
     required this.name,
     required this.price,
     this.imageAsset,
+    this.productId,
+    this.productPrice,
+    this.description = '',
   });
 
   @override
@@ -150,7 +162,6 @@ class _TrendingProductCardState extends State<TrendingProductCard>
     super.dispose();
   }
 
-  // Fallback when an image cannot be loaded.
   Widget _imagePlaceholder() {
     final colors = Theme.of(context).colorScheme;
 
@@ -165,7 +176,6 @@ class _TrendingProductCardState extends State<TrendingProductCard>
     );
   }
 
-  // Supports both online URLs and local asset paths.
   Widget _buildProductImage() {
     final image = widget.imageAsset;
 
@@ -173,23 +183,20 @@ class _TrendingProductCardState extends State<TrendingProductCard>
       return _imagePlaceholder();
     }
 
-    if (image.startsWith('http://') ||
-        image.startsWith('https://')) {
+    if (image.startsWith('http://') || image.startsWith('https://')) {
       return Image.network(
         image,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _imagePlaceholder();
-        },
+        errorBuilder: (context, error, stackTrace) =>
+            _imagePlaceholder(),
       );
     }
 
     return Image.asset(
       image,
       fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) {
-        return _imagePlaceholder();
-      },
+      errorBuilder: (context, error, stackTrace) =>
+          _imagePlaceholder(),
     );
   }
 
@@ -219,10 +226,8 @@ class _TrendingProductCardState extends State<TrendingProductCard>
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // Product image
                 _buildProductImage(),
 
-                // Dark gradient for readable product details
                 const DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -238,7 +243,6 @@ class _TrendingProductCardState extends State<TrendingProductCard>
                   ),
                 ),
 
-                // Product name and price
                 Padding(
                   padding: const EdgeInsets.all(15),
                   child: Align(
@@ -270,6 +274,19 @@ class _TrendingProductCardState extends State<TrendingProductCard>
                     ),
                   ),
                 ),
+
+                if (widget.productId != null)
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: WishlistIcon(
+                      productId: widget.productId!,
+                      name: widget.name,
+                      price: widget.productPrice ?? 0.0,
+                      imageUrl: widget.imageAsset ?? '',
+                      description: widget.description,
+                    ),
+                  ),
               ],
             ),
           ),
