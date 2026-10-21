@@ -1,5 +1,6 @@
 
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../screens/cart/cart_screen.dart';
@@ -7,6 +8,7 @@ import '../screens/cart/cart_controller.dart';
 import '../screens/cart/cart_item.dart';
 import '../screens/account/account_action_button.dart';
 import 'product_details.dart';
+import 'wishlist_icon.dart';
 
 class ProductPage extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -29,6 +31,43 @@ class _ProductPageState extends State<ProductPage>
   late final PageController _pageController;
   late final List<String> _images;
 
+  // Use a real, non-empty product identifier.
+  // Never convert a missing ID into the string "null".
+  String get _productId {
+    final product = widget.product;
+
+    for (final key in ['id', 'productId', 'slug']) {
+      final value = product[key];
+
+      if (value != null) {
+        final id = value.toString().trim();
+
+        if (id.isNotEmpty && id.toLowerCase() != 'null') {
+          return id;
+        }
+      }
+    }
+
+    return '';
+  }
+
+  double get _productPrice {
+    final value = widget.product['price'];
+
+    if (value is num) return value.toDouble();
+
+    return double.tryParse(value?.toString() ?? '') ?? 0.0;
+  }
+
+  String get _productName =>
+      (widget.product['name'] ?? 'Product').toString();
+
+  String get _productImage =>
+      (widget.product['imageUrl'] ?? '').toString();
+
+  String get _productDescription =>
+      (widget.product['description'] ?? '').toString();
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -50,14 +89,37 @@ class _ProductPageState extends State<ProductPage>
                 const SizedBox(height: 12),
                 _buildImageIndicators(),
                 const SizedBox(height: 24),
-                ProductDetails(
-                  product: widget.product,
-                  onSizeChanged: (size) {
-                    setState(() {
-                      _selectedSize = size;
-                    });
-                  },
+
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: ProductDetails(
+                        product: widget.product,
+                        onSizeChanged: (size) {
+                          setState(() {
+                            _selectedSize = size;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Only show the heart when a valid product ID exists.
+                    if (_productId.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2, right: 4),
+                        child: WishlistIcon(
+                          productId: _productId,
+                          name: _productName,
+                          price: _productPrice,
+                          imageUrl: _productImage,
+                          description: _productDescription,
+                        ),
+                      ),
+                  ],
                 ),
+
                 const SizedBox(height: 20),
               ],
             ),
@@ -240,7 +302,6 @@ class _ProductPageState extends State<ProductPage>
 
   // ADD TO CART
 
-
   Future<void> _addToCart() async {
     if (_selectedSize == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -251,30 +312,29 @@ class _ProductPageState extends State<ProductPage>
       return;
     }
 
-    final product = widget.product;
-    final rawPrice = product['price'];
+    final productId = _productId;
 
-    final double price = rawPrice is num
-        ? rawPrice.toDouble()
-        : double.tryParse(rawPrice?.toString() ?? '') ?? 0;
-
-    final productId = (product['id'] ??
-            product['slug'] ??
-            product['name'] ??
-            '')
-        .toString();
-
-    final imageUrl = (product['imageUrl'] ?? '').toString();
+    if (productId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to identify this product. Please try again.',
+          ),
+        ),
+      );
+      debugPrint('ADD TO CART: Missing product ID: ${widget.product}');
+      return;
+    }
 
     try {
       await CartController.instance.addItem(
         CartItem(
           productId: productId,
-          name: (product['name'] ?? 'Product').toString(),
-          imageUrl: imageUrl,
-          price: price,
+          name: _productName,
+          imageUrl: _productImage,
+          price: _productPrice,
           size: _selectedSize!,
-          color: (product['color'] ?? 'Default').toString(),
+          color: (widget.product['color'] ?? 'Default').toString(),
         ),
       );
 
@@ -285,24 +345,21 @@ class _ProductPageState extends State<ProductPage>
           content: Text('Product added to cart!'),
         ),
       );
-      
-} catch (error, stackTrace) {
-  debugPrint('ADD TO CART ERROR: $error');
-  debugPrint('STACK TRACE: $stackTrace');
+    } catch (error, stackTrace) {
+      debugPrint('ADD TO CART ERROR: $error');
+      debugPrint('STACK TRACE: $stackTrace');
 
-  if (!mounted) return;
+      if (!mounted) return;
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text('Cart error: $error'),
-      duration: const Duration(seconds: 8),
-    ),
-  );
-}
-
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Cart error: $error'),
+          duration: const Duration(seconds: 8),
+        ),
+      );
+    }
   }
 
-  
   Widget _buildCartFooter() {
     return SafeArea(
       child: Padding(
@@ -315,8 +372,6 @@ class _ProductPageState extends State<ProductPage>
       ),
     );
   }
-
-
 
   // INITIALIZATION
 
@@ -429,7 +484,6 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
             },
           ),
 
-          // Close button
           Positioned(
             top: MediaQuery.of(context).padding.top + 12,
             right: 16,
@@ -444,7 +498,6 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
             ),
           ),
 
-          // Image counter
           if (widget.images.length > 1)
             Positioned(
               bottom: MediaQuery.of(context).padding.bottom + 24,

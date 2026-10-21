@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'product_page.dart';
+import 'wishlist_icon.dart';
 
 class NewArrivals extends StatefulWidget {
   const NewArrivals({super.key});
@@ -15,7 +16,6 @@ class NewArrivals extends StatefulWidget {
 
 class _NewArrivalsState extends State<NewArrivals>
     with SingleTickerProviderStateMixin {
-  final Set<String> wishlistedProducts = {};
   final PageController _pageController = PageController();
 
   Timer? _timer;
@@ -42,6 +42,7 @@ class _NewArrivalsState extends State<NewArrivals>
       if (!_pageController.hasClients) return;
 
       final page = _pageController.page?.round() ?? 0;
+
       _pageController.animateToPage(
         page + 1,
         duration: const Duration(milliseconds: 500),
@@ -65,6 +66,14 @@ class _NewArrivalsState extends State<NewArrivals>
         builder: (context) => ProductPage(product: product),
       ),
     );
+  }
+
+  double _priceOf(Map<String, dynamic> product) {
+    final value = product['price'];
+
+    if (value is num) return value.toDouble();
+
+    return double.tryParse(value?.toString() ?? '') ?? 0.0;
   }
 
   @override
@@ -98,20 +107,19 @@ class _NewArrivalsState extends State<NewArrivals>
           ),
         ),
         const SizedBox(height: 10),
+
         StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: _productsStream,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               debugPrint('Firestore error: ${snapshot.error}');
+
               return SizedBox(
                 height: 325,
                 child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: SelectableText(
-                      'Firestore error:\n${snapshot.error}',
-                      style: const TextStyle(color: Colors.red),
-                    ),
+                  child: Text(
+                    'Unable to load new arrivals.',
+                    style: TextStyle(color: colors.onSurfaceVariant),
                   ),
                 ),
               );
@@ -146,6 +154,15 @@ class _NewArrivalsState extends State<NewArrivals>
             }
 
             final safePage = _currentPage % products.length;
+            final currentDocument = products[safePage];
+            final currentProduct = <String, dynamic>{
+              ...currentDocument.data(),
+              // Always pass the actual Firestore document ID.
+              'id': currentDocument.id,
+            };
+
+            final imageUrl =
+                (currentProduct['imageUrl'] ?? '').toString();
 
             return Column(
               children: [
@@ -169,11 +186,17 @@ class _NewArrivalsState extends State<NewArrivals>
                               setState(() => _currentPage = index);
                             },
                             itemBuilder: (context, index) {
-                              final data = products[index].data();
-                              final imageUrl =
-                                  data['imageUrl'] as String? ?? '';
+                              final document = products[index];
 
-                              if (imageUrl.isEmpty) {
+                              final product = <String, dynamic>{
+                                ...document.data(),
+                                'id': document.id,
+                              };
+
+                              final image =
+                                  (product['imageUrl'] ?? '').toString();
+
+                              if (image.isEmpty) {
                                 return Center(
                                   child: Icon(
                                     Icons.image_not_supported,
@@ -184,12 +207,13 @@ class _NewArrivalsState extends State<NewArrivals>
                               }
 
                               return GestureDetector(
-                                onTap: () => _openProduct(data),
+                                onTap: () => _openProduct(product),
                                 child: Image.network(
-                                  imageUrl,
+                                  image,
                                   fit: BoxFit.cover,
                                   gaplessPlayback: true,
-                                  errorBuilder: (context, error, stackTrace) {
+                                  errorBuilder:
+                                      (context, error, stackTrace) {
                                     return Center(
                                       child: Icon(
                                         Icons.broken_image,
@@ -203,6 +227,8 @@ class _NewArrivalsState extends State<NewArrivals>
                             },
                           ),
                         ),
+
+                        // Animated NEW badge — unchanged.
                         Positioned(
                           top: 12,
                           left: 12,
@@ -228,38 +254,20 @@ class _NewArrivalsState extends State<NewArrivals>
                             ),
                           ),
                         ),
+
+                        // Shared, persistent wishlist heart.
                         Positioned(
                           top: 10,
                           right: 10,
-                          child: Container(
-                            width: 45,
-                            height: 45,
-                            decoration: BoxDecoration(
-                              color: colors.surfaceContainerHighest,
-                              shape: BoxShape.circle,
-                            ),
-                            child: IconButton(
-                              icon: Icon(
-                                wishlistedProducts.contains(
-                                  products[safePage].id,
-                                )
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                              ),
-                              color: wishlistedProducts.contains(
-                                products[safePage].id,
-                              )
-                                  ? Colors.red
-                                  : colors.onSurface,
-                              onPressed: () {
-                                setState(() {
-                                  final id = products[safePage].id;
-                                  if (!wishlistedProducts.add(id)) {
-                                    wishlistedProducts.remove(id);
-                                  }
-                                });
-                              },
-                            ),
+                          child: WishlistIcon(
+                            productId: currentDocument.id,
+                            name: (currentProduct['name'] ?? 'Product')
+                                .toString(),
+                            price: _priceOf(currentProduct),
+                            imageUrl: imageUrl,
+                            description:
+                                (currentProduct['description'] ?? '')
+                                    .toString(),
                           ),
                         ),
                       ],
