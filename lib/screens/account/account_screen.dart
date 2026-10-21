@@ -11,6 +11,7 @@ import 'support_screen.dart';
 import '../login/login_screen.dart';
 import 'tracker.dart';
 import 'account_action_button.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -497,7 +498,7 @@ class _AccountScreenState extends State<AccountScreen> {
               // Tracker boxes
               const SizedBox(height: 30),
 
-              const Row(
+              Row(
                 children: [
                   Expanded(
                     child: Tracker(
@@ -507,11 +508,23 @@ class _AccountScreenState extends State<AccountScreen> {
                   ),
                   SizedBox(width: 10),
                   Expanded(
-                    child: Tracker(
-                      count: '00',
-                      title: 'Wishlist',
-                    ),
-                  ),
+                    child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                      stream: _auth.currentUser == null
+                      ? null
+                      : FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(_auth.currentUser!.uid)
+                      .collection('wishlist')
+                      .snapshots(),
+                      builder: (context, snapshot) {
+                        final count = snapshot.data?.docs.length ?? 0;
+                        return Tracker(
+                          count: count.toString().padLeft(2, '0'),
+                          title: 'Wishlist',
+                          );
+                          },
+                          ),
+                          ),
                   SizedBox(width: 10),
                   Expanded(
                     child: Tracker(
