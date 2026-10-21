@@ -16,10 +16,13 @@ class NewArrivals extends StatefulWidget {
 
 class _NewArrivalsState extends State<NewArrivals>
     with SingleTickerProviderStateMixin {
-  final PageController _pageController = PageController();
+  // Start far into the page sequence to allow scrolling in either direction.
+  static const int _initialPage = 1000;
 
+  late final PageController _pageController;
   Timer? _timer;
-  int _currentPage = 0;
+
+  int _currentPage = _initialPage;
 
   late AnimationController _newAnimationController;
 
@@ -33,15 +36,20 @@ class _NewArrivalsState extends State<NewArrivals>
   void initState() {
     super.initState();
 
+    _pageController = PageController(
+      initialPage: _initialPage,
+    );
+
     _newAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
     )..repeat(reverse: true);
 
+    // Automatically advance forever.
     _timer = Timer.periodic(const Duration(seconds: 2), (_) {
-      if (!_pageController.hasClients) return;
+      if (!mounted || !_pageController.hasClients) return;
 
-      final page = _pageController.page?.round() ?? 0;
+      final page = _pageController.page?.round() ?? _currentPage;
 
       _pageController.animateToPage(
         page + 1,
@@ -74,6 +82,11 @@ class _NewArrivalsState extends State<NewArrivals>
     if (value is num) return value.toDouble();
 
     return double.tryParse(value?.toString() ?? '') ?? 0.0;
+  }
+
+  // Handles both forward and backward page positions.
+  int _productIndex(int page, int productCount) {
+    return ((page % productCount) + productCount) % productCount;
   }
 
   @override
@@ -119,7 +132,9 @@ class _NewArrivalsState extends State<NewArrivals>
                 child: Center(
                   child: Text(
                     'Unable to load new arrivals.',
-                    style: TextStyle(color: colors.onSurfaceVariant),
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
+                    ),
                   ),
                 ),
               );
@@ -128,7 +143,9 @@ class _NewArrivalsState extends State<NewArrivals>
             if (!snapshot.hasData) {
               return const SizedBox(
                 height: 325,
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               );
             }
 
@@ -138,6 +155,7 @@ class _NewArrivalsState extends State<NewArrivals>
               ..sort((a, b) {
                 final aOrder = a.data()['sortOrder'] as num? ?? 0;
                 final bOrder = b.data()['sortOrder'] as num? ?? 0;
+
                 return aOrder.compareTo(bOrder);
               });
 
@@ -147,14 +165,21 @@ class _NewArrivalsState extends State<NewArrivals>
                 child: Center(
                   child: Text(
                     'No new arrivals yet.',
-                    style: TextStyle(color: colors.onSurface),
+                    style: TextStyle(
+                      color: colors.onSurface,
+                    ),
                   ),
                 ),
               );
             }
 
-            final safePage = _currentPage % products.length;
+            final safePage = _productIndex(
+              _currentPage,
+              products.length,
+            );
+
             final currentDocument = products[safePage];
+
             final currentProduct = <String, dynamic>{
               ...currentDocument.data(),
               // Always pass the actual Firestore document ID.
@@ -181,12 +206,23 @@ class _NewArrivalsState extends State<NewArrivals>
                         Positioned.fill(
                           child: PageView.builder(
                             controller: _pageController,
-                            itemCount: products.length,
+
+                            // No itemCount: keep scrolling indefinitely.
                             onPageChanged: (index) {
-                              setState(() => _currentPage = index);
+                              if (!mounted) return;
+
+                              setState(() {
+                                _currentPage = index;
+                              });
                             },
                             itemBuilder: (context, index) {
-                              final document = products[index];
+                              // Reuse the product list in both directions.
+                              final productIndex = _productIndex(
+                                index,
+                                products.length,
+                              );
+
+                              final document = products[productIndex];
 
                               final product = <String, dynamic>{
                                 ...document.data(),
@@ -228,7 +264,7 @@ class _NewArrivalsState extends State<NewArrivals>
                           ),
                         ),
 
-                        // Animated NEW badge — unchanged.
+                        // Animated NEW badge.
                         Positioned(
                           top: 12,
                           left: 12,
@@ -255,7 +291,7 @@ class _NewArrivalsState extends State<NewArrivals>
                           ),
                         ),
 
-                        // Shared, persistent wishlist heart.
+                        // Persistent wishlist heart for the current product.
                         Positioned(
                           top: 10,
                           right: 10,
@@ -275,6 +311,8 @@ class _NewArrivalsState extends State<NewArrivals>
                   ),
                 ),
                 const SizedBox(height: 15),
+
+                // Indicator follows the currently displayed product.
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
