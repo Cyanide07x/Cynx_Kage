@@ -1,5 +1,8 @@
-
 import 'package:flutter/material.dart';
+
+import '../screens/cart/cart_card.dart';
+import '../screens/cart/cart_controller.dart';
+import '../screens/cart/cart_item.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -9,41 +12,127 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
+  static const double _freeDeliveryThreshold = 1700;
+  static const double _deliveryCharge = 99;
+
+  bool _isLoading = true;
+  String? _loadError;
+
+  List<CartItem> get _cartItems => CartController.instance.items;
+
+  double get _subtotal => _cartItems.fold(
+        0.0,
+        (sum, item) => sum + item.totalPrice,
+      );
+
+  double get _delivery {
+    if (_cartItems.isEmpty || _subtotal >= _freeDeliveryThreshold) {
+      return 0;
+    }
+    return _deliveryCharge;
+  }
+
+  double get _total => _subtotal + _delivery;
+
+  int get _totalQuantity => _cartItems.fold(
+        0,
+        (sum, item) => sum + item.quantity,
+      );
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCart();
+  }
+
+  Future<void> _loadCart() async {
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
+
+    try {
+      await CartController.instance.loadCart();
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+        _loadError = 'Unable to load your bag. Please try again.';
+      });
+    }
+  }
+
+  Future<void> _updateQuantity(CartItem item, int quantity) async {
+    if (quantity < 1) return;
+
+    try {
+      await CartController.instance.updateQuantity(item, quantity);
+
+      if (!mounted) return;
+      setState(() {});
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not update quantity.')),
+      );
+    }
+  }
+
+  Future<void> _removeItem(CartItem item) async {
+    try {
+      await CartController.instance.removeItem(item);
+
+      if (!mounted) return;
+      setState(() {});
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not remove this item.')),
+      );
+    }
+  }
+
+  String _money(double amount) => '₹${amount.toStringAsFixed(0)}';
+
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header — matching SettingScreen
+            // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 25),
-
                   Row(
                     children: [
                       Container(
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          border: Border.all(
-                            color: colors.outline,
-                          ),
+                          border: Border.all(color: colors.outline),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: IconButton(
                           padding: EdgeInsets.zero,
-                          onPressed: () {
-                            Navigator.of(context).maybePop();
-                          },
+                          onPressed: () => Navigator.of(context).maybePop(),
                           icon: Icon(
                             Icons.arrow_back,
                             color: colors.onSurface,
@@ -51,9 +140,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         ),
                       ),
-
                       const SizedBox(width: 16),
-
                       Text(
                         'Checkout',
                         style: TextStyle(
@@ -64,72 +151,336 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ],
                   ),
-
-                  // Subheading
                   const SizedBox(height: 8),
-
                   Padding(
                     padding: const EdgeInsets.only(left: 60),
                     child: Text(
                       'Nearly Home',
                       style: TextStyle(
-                        color: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.color,
+                        color: theme.textTheme.bodySmall?.color,
                         fontSize: 14,
-                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 28),
                 ],
               ),
             ),
 
-            // Scrollable checkout content
+            // Checkout content
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(
-                  left: 20,
-                  right: 20,
-                  bottom: 24,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Progress steps
-                    // Your order
-                    // Delivery address
-                    // Delivery speed
-                    // Payment method
-                    // Order summary
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _loadError != null
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _loadError!,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: colors.onSurface),
+                                ),
+                                const SizedBox(height: 12),
+                                OutlinedButton(
+                                  onPressed: _loadCart,
+                                  child: const Text('Try again'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : _cartItems.isEmpty
+                          ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.shopping_bag_outlined,
+                                      size: 56,
+                                      color: colors.onSurfaceVariant,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Your bag is empty',
+                                      style: TextStyle(
+                                        color: colors.onSurface,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Add some items before checking out.',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: colors.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    OutlinedButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).maybePop(),
+                                      child: const Text('Back to bag'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : SingleChildScrollView(
+                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Your order ($_totalQuantity items)',
+                                    style: TextStyle(
+                                      color: colors.onSurface,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
 
-                    Text(
-                      'Your order',
-                      style: TextStyle(
-                        color: colors.onSurface,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                                  // Uses the exact same cart items and card
+                                  // widget as the Bag screen.
+                                  ..._cartItems.map(
+                                    (item) => Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 12),
+                                      child: CartCard(
+                                        item: item,
+                                        onRemove: () => _removeItem(item),
+                                        onQuantityChanged: (quantity) =>
+                                            _updateQuantity(item, quantity),
+                                      ),
+                                    ),
+                                  ),
 
-                    const SizedBox(height: 12),
+                                  const SizedBox(height: 16),
+                                  Divider(color: colors.outlineVariant),
+                                  const SizedBox(height: 12),
 
-                    
-                    const SizedBox(height: 24),
+                                  Text(
+                                    'Order summary',
+                                    style: TextStyle(
+                                      color: colors.onSurface,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
 
-                    // Add the remaining checkout sections here.
-                  ],
-                ),
-              ),
+                                  _summaryRow(
+                                    'Subtotal',
+                                    _money(_subtotal),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _summaryRow(
+                                    'Delivery',
+                                    _delivery == 0 && _cartItems.isNotEmpty
+                                        ? 'Free'
+                                        : _money(_delivery),
+                                  ),
+                                  if (_subtotal < _freeDeliveryThreshold &&
+                                      _cartItems.isNotEmpty) ...[
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      'Add ${_money(_freeDeliveryThreshold - _subtotal)} more for free delivery.',
+                                      style: TextStyle(
+                                        color: colors.primary,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 16),
+                                  Divider(color: colors.outlineVariant),
+                                  const SizedBox(height: 12),
+                                  _summaryRow(
+                                    'Total',
+                                    _money(_total),
+                                    isTotal: true,
+                                  ),
+
+                                  const SizedBox(height: 24),
+
+                                  // Placeholder sections for the next UI pass.
+                                  _sectionPlaceholder(
+                                    context,
+                                    icon: Icons.location_on_outlined,
+                                    title: 'Delivery address',
+                                    subtitle: 'Add your delivery address',
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _sectionPlaceholder(
+                                    context,
+                                    icon: Icons.local_shipping_outlined,
+                                    title: 'Delivery speed',
+                                    subtitle: 'Delivery options can be added next',
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _sectionPlaceholder(
+                                    context,
+                                    icon: Icons.payment_outlined,
+                                    title: 'Payment method',
+                                    subtitle: 'Payment selection can be added next',
+                                  ),
+                                ],
+                              ),
+                            ),
             ),
           ],
         ),
       ),
 
-      // We'll add the fixed total and Place order button here.
+      // Fixed bottom total and UI-only button.
+      bottomNavigationBar: !_isLoading &&
+              _loadError == null &&
+              _cartItems.isNotEmpty
+          ? SafeArea(
+              top: false,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                decoration: BoxDecoration(
+                  color: theme.scaffoldBackgroundColor,
+                  border: Border(
+                    top: BorderSide(color: colors.outlineVariant),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Total',
+                            style: TextStyle(
+                              color: colors.onSurfaceVariant,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _money(_total),
+                            style: TextStyle(
+                              color: colors.onSurface,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Checkout UI is ready. Order placement is not connected yet.',
+                              ),
+                            ),
+                          );
+                        },
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Continue'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : null,
+    );
+  }
+
+  Widget _summaryRow(
+    String label,
+    String value, {
+    bool isTotal = false,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: isTotal ? colors.onSurface : colors.onSurfaceVariant,
+            fontSize: isTotal ? 16 : 14,
+            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: colors.onSurface,
+            fontSize: isTotal ? 18 : 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _sectionPlaceholder(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: colors.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: colors.primary, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: colors.onSurface,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.chevron_right, color: colors.onSurfaceVariant),
+        ],
+      ),
     );
   }
 }
