@@ -9,6 +9,7 @@ import '../../widgets/header.dart';
 import '../../widgets/searchbar.dart';
 import '../../widgets/new_arrivals.dart';
 import '../../Widgets/trending.dart';
+import '../../widgets/product_search_results.dart';
 import 'men.dart';
 import 'women.dart';
 import 'unisex.dart';
@@ -27,6 +28,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String selectedCategory = 'All';
+  String _searchQuery = '';
 
   late Future<String> _heroSvgFuture;
 
@@ -69,11 +71,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: FutureBuilder<String>(
                                   future: _heroSvgFuture,
                                   builder: (context, snapshot) {
-                                    if (snapshot.hasError) {
-                                      return const SizedBox.shrink();
-                                    }
-
-                                    if (!snapshot.hasData) {
+                                    if (snapshot.hasError ||
+                                        !snapshot.hasData) {
                                       return const SizedBox.shrink();
                                     }
 
@@ -105,11 +104,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
 
-                      // Sticky Search Bar + Categories
+                      // Sticky search bar and categories
                       SliverPersistentHeader(
                         pinned: true,
                         delegate: _StickySearchDelegate(
                           selectedCategory: selectedCategory,
+                          searchQuery: _searchQuery,
+                          onSearchChanged: (query) {
+                            setState(() {
+                              _searchQuery = query;
+                            });
+                          },
                           onCategorySelected: (category) {
                             setState(() {
                               selectedCategory = category;
@@ -118,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
 
-                      // Body content
+                      // Main content or search results
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.only(top: 25),
@@ -138,6 +143,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCategoryBody() {
+    // Show search results while the user has entered a query.
+    if (_searchQuery.trim().isNotEmpty) {
+  return ProductSearchResults(
+    query: _searchQuery.trim(),
+    selectedCategory: selectedCategory,
+  );
+}
+
     if (selectedCategory == 'Men') {
       return const MenScreen();
     }
@@ -186,10 +199,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
   final String selectedCategory;
+  final String searchQuery;
+  final ValueChanged<String> onSearchChanged;
   final ValueChanged<String> onCategorySelected;
 
   _StickySearchDelegate({
     required this.selectedCategory,
+    required this.searchQuery,
+    required this.onSearchChanged,
     required this.onCategorySelected,
   });
 
@@ -224,17 +241,18 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
         children: [
           const SizedBox(height: 5),
 
-          // Search Bar
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 15),
+          // Search bar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
             child: AnimatedSearchBar(
               hint: 'Search jackets, cargos',
+              onChanged: onSearchChanged,
             ),
           ),
 
           const SizedBox(height: 20),
 
-          // Selectable Category Buttons
+          // Selectable category buttons
           SizedBox(
             height: 30,
             child: Align(
@@ -258,7 +276,6 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
             ),
           ),
 
-          // Permanent gap below the categories.
           const SizedBox(height: 15),
         ],
       ),
@@ -300,9 +317,7 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
                   ],
           ),
           border: Border.all(
-            color: isSelected
-                ? colors.primary
-                : theme.dividerColor,
+            color: isSelected ? colors.primary : theme.dividerColor,
             width: 2,
           ),
           borderRadius: BorderRadius.circular(10),
@@ -325,6 +340,7 @@ class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(
     covariant _StickySearchDelegate oldDelegate,
   ) {
-    return oldDelegate.selectedCategory != selectedCategory;
+    return oldDelegate.selectedCategory != selectedCategory ||
+        oldDelegate.searchQuery != searchQuery;
   }
 }
