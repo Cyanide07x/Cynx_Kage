@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'cart_item.dart';
 import 'cart_card.dart';
 import 'cart_controller.dart';
+import '../../checkout/checkout_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -414,17 +415,14 @@ class _CartScreenState extends State<CartScreen> {
                 child: SizedBox(
                   height: 46,
                   child: OutlinedButton(
-                    onPressed: _cartItems.isEmpty
-                        ? null
-                        : () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Checkout will be connected next.',
-                                ),
-                              ),
-                            );
-                          },
+                    onPressed: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const CheckoutScreen(),
+    ),
+  );
+},
                     style: OutlinedButton.styleFrom(
                       foregroundColor: colors.onSurface,
                       side: BorderSide(color: colors.outlineVariant),
