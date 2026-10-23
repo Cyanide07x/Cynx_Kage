@@ -1,6 +1,7 @@
 
 import 'dart:io';
 
+import 'package:cynx_cage/screens/address/address_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
@@ -556,10 +557,10 @@ class _AccountScreenState extends State<AccountScreen> {
                 icon: Icons.location_on_outlined,
                 title: 'Saved Addresses',
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Saved Addresses clicked!'),
-                    ),
+                  Navigator.push(
+                    context, MaterialPageRoute(
+                      builder: (context) => const AddressScreen(),
+                      ),
                   );
                 },
               ),
