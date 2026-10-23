@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'saved_address.dart';
+import '../../theme/theme_controller.dart';
+import '../../theme/apptheme.dart';
 
 class AddAddress extends StatefulWidget {
   final SavedAddress? address;
@@ -155,13 +157,21 @@ class _AddressScreenState extends State<AddAddress> {
     TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
   }) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isCynx =
+        themeController.selectedTheme == CynxThemeMode.cynx;
+    final accent = isCynx
+        ? const Color(0xFFE50046)
+        : const Color(0xFFBBD58E);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: colors.onSurface,
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
@@ -171,34 +181,26 @@ class _AddressScreenState extends State<AddAddress> {
           controller: controller,
           keyboardType: keyboardType,
           maxLines: maxLines,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-          ),
+          style: TextStyle(color: colors.onSurface, fontSize: 14),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
-              color: Colors.grey.shade500,
+              color: colors.onSurfaceVariant,
               fontSize: 14,
             ),
             filled: true,
-            fillColor: const Color(0xFF1C1C1C),
+            fillColor: theme.cardColor,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 16,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(
-                color: Colors.grey.shade800,
-              ),
+              borderSide: BorderSide(color: colors.outlineVariant),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(
-                color: Colors.white,
-                width: 1.2,
-              ),
+              borderSide: BorderSide(color: accent, width: 1.4),
             ),
           ),
         ),
@@ -219,12 +221,18 @@ class _AddressScreenState extends State<AddAddress> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isCynx =
+        themeController.selectedTheme == CynxThemeMode.cynx;
+    final accent = isCynx
+        ? const Color(0xFFE50046)
+        : const Color(0xFFBBD58E);
+
     return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
+      onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: const Color(0xFF101010),
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,19 +248,15 @@ class _AddressScreenState extends State<AddAddress> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.grey.shade700,
-                        ),
+                        border: Border.all(color: colors.outlineVariant),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: IconButton(
                         padding: EdgeInsets.zero,
-                        onPressed: () {
-                          Navigator.of(context).maybePop();
-                        },
-                        icon: const Icon(
+                        onPressed: () => Navigator.of(context).maybePop(),
+                        icon: Icon(
                           Icons.close,
-                          color: Colors.white,
+                          color: colors.onSurface,
                           size: 20,
                         ),
                       ),
@@ -264,8 +268,8 @@ class _AddressScreenState extends State<AddAddress> {
                         children: [
                           Text(
                             _isEditing ? 'Edit Address' : 'Add Address',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: colors.onSurface,
                               fontSize: 26,
                               fontWeight: FontWeight.bold,
                             ),
@@ -274,7 +278,7 @@ class _AddressScreenState extends State<AddAddress> {
                           Text(
                             'Where should we send it?',
                             style: TextStyle(
-                              color: Colors.grey.shade300,
+                              color: colors.onSurfaceVariant,
                               fontSize: 13,
                             ),
                           ),
@@ -347,20 +351,24 @@ class _AddressScreenState extends State<AddAddress> {
                         child: ElevatedButton(
                           onPressed: _isSaving ? null : _saveAddress,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
-                            disabledBackgroundColor: Colors.grey.shade400,
+                            backgroundColor: accent,
+                            foregroundColor: isCynx
+                                ? Colors.white
+                                : const Color(0xFF17210E),
+                            disabledBackgroundColor: colors.surfaceContainerHighest,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
                           child: _isSaving
-                              ? const SizedBox(
+                              ? SizedBox(
                                   width: 22,
                                   height: 22,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: Colors.black,
+                                    color: isCynx
+                                        ? Colors.white
+                                        : const Color(0xFF17210E),
                                   ),
                                 )
                               : Text(
@@ -386,3 +394,4 @@ class _AddressScreenState extends State<AddAddress> {
     );
   }
 }
+

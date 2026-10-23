@@ -1,6 +1,8 @@
 
 import 'package:cynx_cage/screens/address/address_card.dart';
 import 'package:flutter/material.dart';
+import 'package:cynx_cage/theme/theme_controller.dart';
+import 'package:cynx_cage/theme/apptheme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -56,17 +58,19 @@ class _AddressScreenState extends State<AddressScreen> {
   }
 
   Future<void> _removeAddress(String documentId) async {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF1C1C1C),
-        title: const Text(
+        backgroundColor: theme.cardColor,
+        title: Text(
           'Remove address?',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: colors.onSurface),
         ),
-        content: const Text(
+        content: Text(
           'Are you sure you want to remove this address?',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: colors.onSurfaceVariant),
         ),
         actions: [
           TextButton(
@@ -88,27 +92,18 @@ class _AddressScreenState extends State<AddressScreen> {
 
     try {
       final addresses = _addresses;
-
       if (addresses == null) {
         throw Exception('Please sign in to remove an address.');
       }
-
       await addresses.doc(documentId).delete();
-
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Address removed successfully.'),
-        ),
+        const SnackBar(content: Text('Address removed successfully.')),
       );
     } catch (e) {
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not remove address: $e'),
-        ),
+        SnackBar(content: Text('Could not remove address: $e')),
       );
     }
   }
@@ -117,8 +112,18 @@ class _AddressScreenState extends State<AddressScreen> {
   Widget build(BuildContext context) {
     final addresses = _addresses;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF101010),
+    return AnimatedBuilder(
+      animation: themeController,
+      builder: (context, _) {
+        final theme = Theme.of(context);
+        final colors = theme.colorScheme;
+        final isCynx = themeController.selectedTheme == CynxThemeMode.cynx;
+        final accent = isCynx
+            ? const Color(0xFFE50046)
+            : const Color(0xFFBBD58E);
+
+        return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,7 +141,7 @@ class _AddressScreenState extends State<AddressScreen> {
                     height: 44,
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Colors.grey.shade700,
+                        color: colors.outlineVariant,
                       ),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -145,9 +150,9 @@ class _AddressScreenState extends State<AddressScreen> {
                       onPressed: () {
                         Navigator.of(context).maybePop();
                       },
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.arrow_back,
-                        color: Colors.white,
+                        color: colors.onSurface,
                         size: 20,
                       ),
                     ),
@@ -157,10 +162,10 @@ class _AddressScreenState extends State<AddressScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Delivery Address',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: colors.onSurface,
                             fontSize: 26,
                             fontWeight: FontWeight.bold,
                           ),
@@ -168,7 +173,7 @@ class _AddressScreenState extends State<AddressScreen> {
                         Text(
                           'Gear on its way. Where to?',
                           style: TextStyle(
-                            color: Colors.grey.shade300,
+                            color: colors.onSurfaceVariant,
                             fontSize: 13,
                           ),
                         ),
@@ -189,8 +194,8 @@ class _AddressScreenState extends State<AddressScreen> {
                   icon: const Icon(Icons.add, size: 20),
                   label: const Text('Add address'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.grey),
+                    foregroundColor: accent,
+                    side: BorderSide(color: colors.outlineVariant),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
@@ -208,10 +213,10 @@ class _AddressScreenState extends State<AddressScreen> {
             // Saved addresses
             Expanded(
               child: addresses == null
-                  ? const Center(
+                  ? Center(
                       child: Text(
                         'Please sign in to view your addresses.',
-                        style: TextStyle(color: Colors.white70),
+                        style: TextStyle(color: colors.onSurfaceVariant),
                       ),
                     )
                   : StreamBuilder<
@@ -219,12 +224,10 @@ class _AddressScreenState extends State<AddressScreen> {
                       stream: addresses.snapshots(),
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
-                          return const Center(
+                          return Center(
                             child: Text(
                               'Could not load addresses. Please try again.',
-                              style: TextStyle(
-                                color: Colors.white70,
-                              ),
+                              style: TextStyle(color: colors.onSurfaceVariant),
                             ),
                           );
                         }
@@ -240,12 +243,10 @@ class _AddressScreenState extends State<AddressScreen> {
                             snapshot.data?.docs ?? [];
 
                         if (documents.isEmpty) {
-                          return const Center(
+                          return Center(
                             child: Text(
                               'No saved addresses yet.',
-                              style: TextStyle(
-                                color: Colors.white70,
-                              ),
+                              style: TextStyle(color: colors.onSurfaceVariant),
                             ),
                           );
                         }
@@ -277,13 +278,13 @@ class _AddressScreenState extends State<AddressScreen> {
 
                               // Temporary default and selection.
                               isDefault: index == 0,
-                              isSelected: index == 0,
+                              isSelected: widget.selectionMode && index == 0,
 
                               onSelect: () {
-  if (widget.selectionMode) {
-    Navigator.pop(context, address);
-  }
-},
+                                if (widget.selectionMode) {
+                                  Navigator.pop(context, address);
+                                }
+                              },
 
                               onEdit: () {
                                 _editAddress(
@@ -304,6 +305,8 @@ class _AddressScreenState extends State<AddressScreen> {
           ],
         ),
       ),
+        );
+      },
     );
   }
 }
