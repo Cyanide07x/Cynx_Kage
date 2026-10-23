@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'add_Address.dart';
 
 class AddressScreen extends StatefulWidget{
   const AddressScreen({super.key});
@@ -22,33 +23,92 @@ extends State<AddressScreen> {
           ),
           child: Row(
             children: [
-              IconButton(onPressed: () {
-                Navigator.pop(context);
-              },
-              
-              
-              
-               icon:  const Icon(Icons.arrow_back,
-               size: 20,
-               ) ,
-               ),
+              Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.grey.shade700,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () {
+                        Navigator.of(context).maybePop();
+                      },
+                      icon: Icon(
+                        Icons.arrow_back,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
 
-
-               const SizedBox(width: 8),
-               const Text(
-                'Delivery Address',
-                style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                ),
-               )
-            ],
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Delivery Address',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Gear on its way. Where to?.',
+                          style: TextStyle(
+                            color: Colors.grey.shade300,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+            ],  
           ),
+          ),
+          const SizedBox(height: 20),
+
+          OutlinedButton.icon(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddAddress(),
+      ),
+    );
+  },
+  icon: const Icon(Icons.add, size: 20),
+  label: const Text('Add address'),
+  style: OutlinedButton.styleFrom(
+    foregroundColor: Colors.white,
+    side: const BorderSide(color: Colors.grey),
+    padding: const EdgeInsets.symmetric(
+      horizontal: 16,
+      vertical: 12,
+    ),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+  ),
+)
+
+
+
+
           
-          )
 
         ],
-      ))
+        
+      )
+      )
+      
     );
   }
 }
