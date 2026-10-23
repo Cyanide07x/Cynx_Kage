@@ -138,19 +138,22 @@ class AddressCard extends StatelessWidget {
           Row(
             children: [
               OutlinedButton.icon(
-                onPressed: onEdit,
-                icon: const Icon(Icons.edit_outlined, size: 14),
-                label: const Text('Edit'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: BorderSide(color: Colors.grey.shade800),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  textStyle: const TextStyle(fontSize: 12),
-                ),
-              ),
+  onPressed: () {
+    debugPrint('Edit button tapped for: ${address.name}');
+    onEdit();
+  },
+  icon: const Icon(Icons.edit_outlined, size: 14),
+  label: const Text('Edit'),
+  style: OutlinedButton.styleFrom(
+    foregroundColor: Colors.white,
+    side: BorderSide(color: Colors.grey.shade800),
+    padding: const EdgeInsets.symmetric(
+      horizontal: 12,
+      vertical: 8,
+    ),
+    textStyle: const TextStyle(fontSize: 12),
+  ),
+),
               const SizedBox(width: 10),
               OutlinedButton.icon(
                 onPressed: onRemove,
