@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AddAddress extends StatefulWidget {
   const AddAddress({super.key});
@@ -21,6 +23,58 @@ class _AddressScreenState extends State<AddAddress> {
       TextEditingController();
   final TextEditingController pinController =
       TextEditingController();
+
+      
+Future<void> _saveAddress() async {
+  // 1. Check whether a user is signed in.
+  final user = FirebaseAuth.instance.currentUser;
+
+  if (user == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Please sign in to save your address.'),
+      ),
+    );
+    return;
+  }
+
+  // 2. Save the address under this user's account.
+  try {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('addresses')
+        .add({
+      'name': nameController.text.trim(),
+      'phone': phoneController.text.trim(),
+      'address': addressController.text.trim(),
+      'city': cityController.text.trim(),
+      'state': stateController.text.trim(),
+      'pin': pinController.text.trim(),
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Address saved successfully!'),
+      ),
+    );
+
+    // Return to the previous screen after saving.
+    Navigator.pop(context, true);
+  } catch (e) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to save address: $e'),
+      ),
+    );
+  }
+}
+
 
   Widget addressField({
     required String label,
@@ -227,26 +281,9 @@ return GestureDetector(
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
-                        onPressed: () {
-                          debugPrint(
-                            'Name: ${nameController.text}',
-                          );
-                          debugPrint(
-                            'Phone: ${phoneController.text}',
-                          );
-                          debugPrint(
-                            'Address: ${addressController.text}',
-                          );
-                          debugPrint(
-                            'City: ${cityController.text}',
-                          );
-                          debugPrint(
-                            'State: ${stateController.text}',
-                          );
-                          debugPrint(
-                            'PIN: ${pinController.text}',
-                          );
-                        },
+                        
+                          onPressed: _saveAddress,
+                        
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.black,

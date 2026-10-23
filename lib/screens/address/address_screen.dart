@@ -1,6 +1,7 @@
 import 'package:cynx_cage/screens/address/address_card.dart';
 import 'package:flutter/material.dart';
 import 'add_Address.dart';
+import 'saved_address.dart';
 
 class AddressScreen extends StatefulWidget{
   const AddressScreen({super.key});
@@ -103,7 +104,21 @@ extends State<AddressScreen> {
 
 const SizedBox(height: 26),
 
-const AddressCard()
+AddressCard(
+  address: const SavedAddress(
+    name: 'Test User',
+    phone: '9876543210',
+    address: '123 Main Street',
+    city: 'Gwalior',
+    state: 'Madhya Pradesh',
+    pin: '474001',
+  ),
+  isDefault: true,
+  isSelected: true,
+  onSelect: () {},
+  onEdit: () {},
+  onRemove: () {},
+),
         ],
         
       )
