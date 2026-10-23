@@ -8,7 +8,12 @@ import 'add_address.dart';
 import 'saved_address.dart';
 
 class AddressScreen extends StatefulWidget {
-  const AddressScreen({super.key});
+  final bool selectionMode;
+
+  const AddressScreen({
+    super.key,
+    this.selectionMode = false,
+  });
 
   @override
   State<AddressScreen> createState() => _AddressScreenState();
@@ -275,8 +280,10 @@ class _AddressScreenState extends State<AddressScreen> {
                               isSelected: index == 0,
 
                               onSelect: () {
-                                // Selection will be implemented later.
-                              },
+  if (widget.selectionMode) {
+    Navigator.pop(context, address);
+  }
+},
 
                               onEdit: () {
                                 _editAddress(

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../screens/cart/cart_card.dart';
 import '../screens/cart/cart_controller.dart';
 import '../screens/cart/cart_item.dart';
+import '../screens/address/address_screen.dart';
+import '../screens/address/saved_address.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -14,6 +16,25 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   static const double _freeDeliveryThreshold = 1700;
   static const double _deliveryCharge = 99;
+
+  SavedAddress? _selectedAddress;
+
+  Future<void> _selectDeliveryAddress() async {
+    final address = await Navigator.push<SavedAddress>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AddressScreen(
+          selectionMode: true,
+        ),
+      ),
+    );
+
+    if (!mounted || address == null) return;
+
+    setState(() {
+      _selectedAddress = address;
+    });
+  }
 
   bool _isLoading = true;
   String? _loadError;
@@ -308,12 +329,90 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
                                   const SizedBox(height: 24),
 
-                                  // Placeholder sections for the next UI pass.
-                                  _sectionPlaceholder(
-                                    context,
-                                    icon: Icons.location_on_outlined,
-                                    title: 'Delivery address',
-                                    subtitle: 'Add your delivery address',
+                                  // Delivery address selection.
+                                  InkWell(
+                                    onTap: _selectDeliveryAddress,
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: colors.outlineVariant,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.location_on_outlined,
+                                            color: colors.primary,
+                                            size: 24,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'Delivery address',
+                                                  style: TextStyle(
+                                                    color: colors.onSurface,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                if (_selectedAddress == null)
+                                                  Text(
+                                                    'Select your delivery address',
+                                                    style: TextStyle(
+                                                      color: colors.onSurfaceVariant,
+                                                      fontSize: 13,
+                                                    ),
+                                                  )
+                                                else ...[
+                                                  Text(
+                                                    _selectedAddress!.name,
+                                                    style: TextStyle(
+                                                      color: colors.onSurface,
+                                                      fontSize: 14,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 3),
+                                                  Text(
+                                                    '${_selectedAddress!.address}, '
+                                                    '${_selectedAddress!.city}, '
+                                                    '${_selectedAddress!.state} - '
+                                                    '${_selectedAddress!.pin}',
+                                                    style: TextStyle(
+                                                      color: colors.onSurfaceVariant,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 3),
+                                                  Text(
+                                                    _selectedAddress!.phone,
+                                                    style: TextStyle(
+                                                      color: colors.onSurfaceVariant,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ],
+                                            ),
+                                          ),
+                                          Icon(
+                                            _selectedAddress == null
+                                                ? Icons.chevron_right
+                                                : Icons.edit_outlined,
+                                            color: colors.onSurfaceVariant,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                   const SizedBox(height: 12),
                                   _sectionPlaceholder(
