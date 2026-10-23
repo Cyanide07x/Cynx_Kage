@@ -1,3 +1,4 @@
+import 'package:cynx_cage/screens/address/address_card.dart';
 import 'package:flutter/material.dart';
 import 'add_Address.dart';
 
@@ -97,13 +98,12 @@ extends State<AddressScreen> {
       borderRadius: BorderRadius.circular(10),
     ),
   ),
-)
+),
 
 
+const SizedBox(height: 26),
 
-
-          
-
+const AddressCard()
         ],
         
       )

@@ -269,6 +269,7 @@ return GestureDetector(
               ),
             ),
           ],
+
         // Keep your existing Column content here
       ),
     ),
