@@ -15,7 +15,13 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  String _selectedPaymentMethod = 'COD';
+  String _selectedPaymentMethod = 'null';
+
+  static const Color _accentColor = Color(0xFFC5E86C);
+
+  void _confirmSelection() {
+    Navigator.pop(context, _selectedPaymentMethod);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +38,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
               child: Row(
                 children: [
-                  // Back button
                   Container(
                     width: 40,
                     height: 40,
@@ -44,9 +49,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                     child: IconButton(
                       padding: EdgeInsets.zero,
-                      onPressed: () {
-                        Navigator.maybePop(context);
-                      },
+                      onPressed: _confirmSelection,
                       icon: const Icon(
                         Icons.arrow_back,
                         color: Colors.white,
@@ -55,7 +58,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                   ),
 
-                  // Centered title
                   const Expanded(
                     child: Text(
                       'Payment',
@@ -68,7 +70,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                   ),
 
-                  // Balances the back button
                   const SizedBox(width: 40),
                 ],
               ),
@@ -98,10 +99,63 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
 
-            // Space before payment method
-            const SizedBox(height: 32),
+            const SizedBox(height: 36),
 
-            // Cash on delivery card
+            // Payment method heading
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Payment method',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // UPI
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: PaymentMethodCard(
+                icon: Icons.phone_iphone_outlined,
+                title: 'UPI',
+                subtitle: 'Google Pay, PhonePe, Paytm',
+                isSelected: _selectedPaymentMethod == 'UPI',
+                onTap: () {
+                  setState(() {
+                    _selectedPaymentMethod = 'UPI';
+                  });
+                },
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Credit / Debit card
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: PaymentMethodCard(
+                icon: Icons.credit_card_outlined,
+                title: 'Credit / Debit card',
+                subtitle: 'Visa, Mastercard, RuPay',
+                isSelected: _selectedPaymentMethod == 'CARD',
+                onTap: () {
+                  setState(() {
+                    _selectedPaymentMethod = 'CARD';
+                  });
+                },
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Cash on delivery
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: PaymentMethodCard(
@@ -117,38 +171,74 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
 
-            const SizedBox(height: 32),
+            const Spacer(),
 
-            // Cash on delivery card
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: PaymentMethodCard(
-                icon: Icons.phone_iphone_outlined,
-                title: 'UPI',
-                subtitle: 'Paytm, Google pay, Phone Pe',
-                isSelected: _selectedPaymentMethod == 'UPI',
-                onTap: () {
-                  setState(() {
-                    _selectedPaymentMethod = 'UPI';
-                  });
-                },
+            // Bottom confirmation area
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
+              decoration: const BoxDecoration(
+                color: Color(0xFF0A0A0A),
+                border: Border(
+                  top: BorderSide(
+                    color: Color(0xFF222222),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        _selectedPaymentMethod == 'COD'
+                            ? Icons.payments_outlined
+                            : Icons.lock_outline,
+                        color: _accentColor,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _selectedPaymentMethod == 'COD'
+                            ? 'Cash on delivery selected'
+                            : _selectedPaymentMethod == 'UPI'
+                                ? 'UPI selected'
+                                : 'Card selected',
+                        style: const TextStyle(
+                          color: Color(0xFF999999),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
 
-            // Cash on delivery card
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: PaymentMethodCard(
-                icon: Icons.credit_card_outlined,
-                title: 'Card',
-                subtitle: 'Debit/Credit',
-                isSelected: _selectedPaymentMethod == 'CARD',
-                onTap: () {
-                  setState(() {
-                    _selectedPaymentMethod = 'CARD';
-                  });
-                },
+                  const SizedBox(height: 14),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: OutlinedButton(
+                      onPressed: _confirmSelection,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(
+                          color: Color(0xFF333333),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Confirm Selection',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

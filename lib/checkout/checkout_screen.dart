@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+ import 'package:flutter/material.dart';
 
 import '../screens/cart/cart_card.dart';
 import '../screens/cart/cart_controller.dart';
@@ -19,6 +19,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   static const double _deliveryCharge = 99;
 
   SavedAddress? _selectedAddress;
+  String? _selectedPaymentMethod;
 
   Future<void> _selectDeliveryAddress() async {
     final address = await Navigator.push<SavedAddress>(
@@ -424,19 +425,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   ),
                                   const SizedBox(height: 12),
 
+
 InkWell(
   onTap: () async {
-    await Navigator.push(
+    final selectedMethod = await Navigator.push<String>(
       context,
       MaterialPageRoute(
         builder: (context) => PaymentScreen(
           totalAmount: _total,
-         ),
+        ),
       ),
     );
+
+    if (!mounted || selectedMethod == null) return;
+
+    setState(() {
+      _selectedPaymentMethod = selectedMethod;
+    });
   },
   borderRadius: BorderRadius.circular(12),
   child: Container(
+    width: double.infinity,
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
       color: Theme.of(context).cardColor,
@@ -453,7 +462,6 @@ InkWell(
           size: 24,
         ),
         const SizedBox(width: 12),
-
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -468,7 +476,13 @@ InkWell(
               ),
               const SizedBox(height: 4),
               Text(
-                'Choose how you want to pay',
+                _selectedPaymentMethod == 'COD'
+                    ? 'Cash on delivery'
+                    : _selectedPaymentMethod == 'UPI'
+                        ? 'UPI'
+                        : _selectedPaymentMethod == 'CARD'
+                            ? 'Credit / Debit card'
+                            : 'Choose how you want to pay',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 12,
@@ -477,7 +491,6 @@ InkWell(
             ],
           ),
         ),
-
         Icon(
           Icons.chevron_right,
           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -486,6 +499,7 @@ InkWell(
     ),
   ),
 ),
+
                                 ],
                               ),
                             ),
@@ -538,10 +552,32 @@ InkWell(
                     Expanded(
                       child: FilledButton(
                         onPressed: () {
+                          if (_selectedAddress == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Please select a delivery address first.',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          if (_selectedPaymentMethod == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Please select a payment method first.',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
-                                'Checkout UI is ready. Order placement is not connected yet.',
+                                'Selection complete. Order placement is not connected yet.',
                               ),
                             ),
                           );
