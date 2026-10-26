@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'payment_method_card.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double totalAmount;
@@ -14,6 +15,8 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
+  String _selectedPaymentMethod = 'COD';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,6 +95,60 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 fontSize: 40,
                 fontWeight: FontWeight.w800,
                 height: 1.1,
+              ),
+            ),
+
+            // Space before payment method
+            const SizedBox(height: 32),
+
+            // Cash on delivery card
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: PaymentMethodCard(
+                icon: Icons.payments_outlined,
+                title: 'Cash on delivery',
+                subtitle: 'Pay when it arrives',
+                isSelected: _selectedPaymentMethod == 'COD',
+                onTap: () {
+                  setState(() {
+                    _selectedPaymentMethod = 'COD';
+                  });
+                },
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // Cash on delivery card
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: PaymentMethodCard(
+                icon: Icons.phone_iphone_outlined,
+                title: 'UPI',
+                subtitle: 'Paytm, Google pay, Phone Pe',
+                isSelected: _selectedPaymentMethod == 'UPI',
+                onTap: () {
+                  setState(() {
+                    _selectedPaymentMethod = 'UPI';
+                  });
+                },
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Cash on delivery card
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: PaymentMethodCard(
+                icon: Icons.credit_card_outlined,
+                title: 'Card',
+                subtitle: 'Debit/Credit',
+                isSelected: _selectedPaymentMethod == 'CARD',
+                onTap: () {
+                  setState(() {
+                    _selectedPaymentMethod = 'CARD';
+                  });
+                },
               ),
             ),
           ],
