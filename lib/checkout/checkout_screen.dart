@@ -5,6 +5,7 @@ import '../screens/cart/cart_controller.dart';
 import '../screens/cart/cart_item.dart';
 import '../screens/address/address_screen.dart';
 import '../screens/address/saved_address.dart';
+import 'payment_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -422,12 +423,67 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     subtitle: 'Delivery options can be added next',
                                   ),
                                   const SizedBox(height: 12),
-                                  _sectionPlaceholder(
-                                    context,
-                                    icon: Icons.payment_outlined,
-                                    title: 'Payment method',
-                                    subtitle: 'Payment selection can be added next',
-                                  ),
+
+InkWell(
+  onTap: () async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const PaymentScreen(),
+      ),
+    );
+  },
+  borderRadius: BorderRadius.circular(12),
+  child: Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Theme.of(context).cardColor,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(
+        color: Theme.of(context).colorScheme.outlineVariant,
+      ),
+    ),
+    child: Row(
+      children: [
+        Icon(
+          Icons.payment_outlined,
+          color: Theme.of(context).colorScheme.primary,
+          size: 24,
+        ),
+        const SizedBox(width: 12),
+
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Payment method',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Choose how you want to pay',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        Icon(
+          Icons.chevron_right,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ],
+    ),
+  ),
+),
                                 ],
                               ),
                             ),
