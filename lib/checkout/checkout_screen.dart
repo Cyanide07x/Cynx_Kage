@@ -6,6 +6,8 @@ import '../screens/cart/cart_item.dart';
 import '../screens/address/address_screen.dart';
 import '../screens/address/saved_address.dart';
 import 'payment_screen.dart';
+import '../orders/services/order_service.dart';
+import '../orders/screens/order_confirmation_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -20,6 +22,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   SavedAddress? _selectedAddress;
   String? _selectedPaymentMethod;
+  bool _isPlacingOrder = false;
 
   Future<void> _selectDeliveryAddress() async {
     final address = await Navigator.push<SavedAddress>(
@@ -125,6 +128,80 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   String _money(double amount) => '₹${amount.toStringAsFixed(0)}';
+
+
+
+Future<void> _placeOrder() async {
+  if (_isPlacingOrder) return;
+
+  if (_selectedAddress == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Please select a delivery address first.'),
+      ),
+    );
+    return;
+  }
+
+  if (_selectedPaymentMethod == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Please select a payment method first.'),
+      ),
+    );
+    return;
+  }
+
+  if (_cartItems.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Your cart is empty.'),
+      ),
+    );
+    return;
+  }
+
+  setState(() {
+    _isPlacingOrder = true;
+  });
+
+  try {
+    final orderId = await OrderService().createOrder(
+      cartItems: List<CartItem>.from(_cartItems),
+      address: _selectedAddress!,
+      subtotal: _subtotal,
+      deliveryCharge: _delivery,
+      totalAmount: _total,
+      paymentMethod: _selectedPaymentMethod!,
+    );
+
+    if (!mounted) return;
+
+    await Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => OrderConfirmationScreen(
+          orderId: orderId,
+        ),
+      ),
+    );
+  } catch (error) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Could not place your order. $error',
+        ),
+      ),
+    );
+  } finally {
+    if (mounted) {
+      setState(() {
+        _isPlacingOrder = false;
+      });
+    }
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -550,46 +627,26 @@ InkWell(
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: FilledButton(
-                        onPressed: () {
-                          if (_selectedAddress == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Please select a delivery address first.',
-                                ),
-                              ),
-                            );
-                            return;
-                          }
+                      child: 
+FilledButton(
+  onPressed: _isPlacingOrder ? null : _placeOrder,
+  style: FilledButton.styleFrom(
+    padding: const EdgeInsets.symmetric(vertical: 16),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+  ),
+  child: _isPlacingOrder
+      ? const SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+          ),
+        )
+      : const Text('Place Order'),
+),
 
-                          if (_selectedPaymentMethod == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Please select a payment method first.',
-                                ),
-                              ),
-                            );
-                            return;
-                          }
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Selection complete. Order placement is not connected yet.',
-                              ),
-                            ),
-                          );
-                        },
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text('Continue'),
-                      ),
                     ),
                   ],
                 ),
