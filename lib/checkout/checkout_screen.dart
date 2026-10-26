@@ -429,7 +429,9 @@ InkWell(
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const PaymentScreen(),
+        builder: (context) => PaymentScreen(
+          totalAmount: _total,
+         ),
       ),
     );
   },
