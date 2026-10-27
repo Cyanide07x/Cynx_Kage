@@ -8,6 +8,7 @@ import '../screens/address/saved_address.dart';
 import 'payment_screen.dart';
 import '../orders/services/order_service.dart';
 import '../orders/screens/order_confirmation_screen.dart';
+import '../widgets/coupon_widget.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -397,6 +398,21 @@ Future<void> _placeOrder() async {
                                       ),
                                     ),
                                   ],
+                                  const SizedBox(height: 16),
+
+                                  // Coupon entry UI. Validation will be connected
+                                  // to the Firebase callable function next.
+                                  CouponWidget(
+                                    onApply: (code) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Coupon entered: $code'),
+                                        ),
+                                      );
+                                    },
+                                    onRemove: () {},
+                                  ),
+
                                   const SizedBox(height: 16),
                                   Divider(color: colors.outlineVariant),
                                   const SizedBox(height: 12),
