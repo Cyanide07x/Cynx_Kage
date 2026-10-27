@@ -13,6 +13,7 @@ import '../login/login_screen.dart';
 import 'tracker.dart';
 import 'account_action_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'orders/my_order.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -502,31 +503,45 @@ class _AccountScreenState extends State<AccountScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Tracker(
-                      count: '00',
-                      title: 'Orders',
+                    child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                      stream: _auth.currentUser == null
+                          ? null
+                          : FirebaseFirestore.instance
+                              .collection('orders')
+                              .where(
+                                'userId',
+                                isEqualTo: _auth.currentUser!.uid,
+                              )
+                              .snapshots(),
+                      builder: (context, snapshot) {
+                        final count = snapshot.data?.docs.length ?? 0;
+                        return Tracker(
+                          count: count.toString().padLeft(2, '0'),
+                          title: 'Orders',
+                        );
+                      },
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                       stream: _auth.currentUser == null
-                      ? null
-                      : FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(_auth.currentUser!.uid)
-                      .collection('wishlist')
-                      .snapshots(),
+                          ? null
+                          : FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(_auth.currentUser!.uid)
+                              .collection('wishlist')
+                              .snapshots(),
                       builder: (context, snapshot) {
                         final count = snapshot.data?.docs.length ?? 0;
                         return Tracker(
                           count: count.toString().padLeft(2, '0'),
                           title: 'Wishlist',
-                          );
-                          },
-                          ),
-                          ),
-                  SizedBox(width: 10),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Tracker(
                       count: '03',
@@ -543,9 +558,9 @@ class _AccountScreenState extends State<AccountScreen> {
                 icon: Icons.shopping_bag_outlined,
                 title: 'My Orders',
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('My Orders clicked!'),
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const MyOrdersScreen(),
                     ),
                   );
                 },
