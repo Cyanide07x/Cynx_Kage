@@ -1,1 +1,51 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"cynx-kage","appId":"1:699355006462:android:d078c26d5353fb8f9c2caf","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"cynx-kage","configurations":{"android":"1:699355006462:android:d078c26d5353fb8f9c2caf","ios":"1:699355006462:ios:41f33c5e1dae99cb9c2caf","web":"1:699355006462:web:e4cdd76f121ff8df9c2caf"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "cynx-kage",
+          "appId": "1:699355006462:android:d078c26d5353fb8f9c2caf",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "cynx-kage",
+          "configurations": {
+            "android": "1:699355006462:android:d078c26d5353fb8f9c2caf",
+            "ios": "1:699355006462:ios:41f33c5e1dae99cb9c2caf",
+            "web": "1:699355006462:web:e4cdd76f121ff8df9c2caf"
+          }
+        }
+      }
+    }
+  },
+"firestore": {
+  "rules": "firestore.rules"
+},
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ],
+"emulators": {
+  "functions": {
+    "port": 5001
+  },
+  "firestore": {
+    "port": 8080
+  },
+  "ui": {
+    "enabled": false
+  }
+}
+}

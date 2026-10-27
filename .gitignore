@@ -50,3 +50,18 @@ app.*.map.json
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 lib/firebase_options.dart
+
+# Firebase Cloud Functions dependencies
+functions/node_modules/
+
+# Firebase local debug logs
+firebase-debug.log
+firebase-debug.*.log
+ui-debug.log
+
+# Private credentials and environment files
+.env
+.env.*
+!.env.example
+serviceAccountKey.json
+*-service-account*.json

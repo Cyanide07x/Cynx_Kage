@@ -1,0 +1,56 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Product catalog: public read-only access
+    match /catalogProducts/{productId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // User profile
+    match /users/{userId} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == userId;
+
+      // User cart
+      match /cart/{cartItemId} {
+        allow read, write: if request.auth != null
+                           && request.auth.uid == userId;
+      }
+
+      // User wishlist
+      match /wishlist/{productId} {
+        allow read, write: if request.auth != null
+                           && request.auth.uid == userId;
+      }
+
+      // Saved addresses
+      match /addresses/{addressId} {
+        allow read, write: if request.auth != null
+                           && request.auth.uid == userId;
+      }
+    }
+
+    // Coupons: clients cannot read or modify coupon documents directly.
+    // The trusted Cloud Function uses the Firebase Admin SDK.
+    match /coupons/{couponId} {
+      allow read, write: if false;
+    }
+
+    // Orders
+    match /orders/{orderId} {
+      // Existing rule preserved temporarily.
+      // We will secure order creation before production checkout.
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid;
+
+      allow read: if request.auth != null
+                  && resource.data.userId == request.auth.uid;
+
+      allow update, delete: if false;
+    }
+  }
+}
