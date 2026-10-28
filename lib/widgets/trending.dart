@@ -10,13 +10,15 @@ import 'product_page.dart';
 class Trending extends StatelessWidget {
   const Trending({super.key});
 
+  static final Stream<QuerySnapshot<Map<String, dynamic>>> _featuredStream =
+      FirebaseFirestore.instance
+          .collection('catalogProducts')
+          .where('isActive', isEqualTo: true)
+          .where('isFeatured', isEqualTo: true)
+          .snapshots();
+
   @override
   Widget build(BuildContext context) {
-    final productsStream = FirebaseFirestore.instance
-        .collection('catalogProducts')
-        .where('isActive', isEqualTo: true)
-        .where('isFeatured', isEqualTo: true)
-        .snapshots();
 
     final colors = Theme.of(context).colorScheme;
 
@@ -51,7 +53,7 @@ class Trending extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: productsStream,
+          stream: _featuredStream,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return Padding(

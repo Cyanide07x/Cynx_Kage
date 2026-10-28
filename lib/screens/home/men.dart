@@ -19,15 +19,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class MenScreen extends StatelessWidget {
   const MenScreen({super.key});
 
+  static final Stream<QuerySnapshot<Map<String, dynamic>>> _productsStream =
+      FirebaseFirestore.instance
+          .collection('catalogProducts')
+          .where('isActive', isEqualTo: true)
+          .snapshots();
+
   @override
   Widget build(BuildContext context) {
-    // Real-time stream of all active products; category filtering is done
-    // client-side because Firestore does not support OR queries on the same
-    // field without a composite index.
-    final productsStream = FirebaseFirestore.instance
-        .collection('catalogProducts')
-        .where('isActive', isEqualTo: true)
-        .snapshots();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(top: 0, bottom: 30),
@@ -62,7 +61,7 @@ class MenScreen extends StatelessWidget {
 
           // ── Product grid ────────────────────────────────────────────
           StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream: productsStream,
+            stream: _productsStream,
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return const Text(

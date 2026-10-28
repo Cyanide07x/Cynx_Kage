@@ -15,6 +15,12 @@ class ProductSearchResults extends StatelessWidget {
     required this.selectedCategory,
   });
 
+  static final Stream<QuerySnapshot<Map<String, dynamic>>> _catalogStream =
+      FirebaseFirestore.instance
+          .collection('catalogProducts')
+          .where('isActive', isEqualTo: true)
+          .snapshots();
+
   String _normalize(String value) {
     return value
         .toLowerCase()
@@ -198,13 +204,8 @@ class ProductSearchResults extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    final productsStream = FirebaseFirestore.instance
-        .collection('catalogProducts')
-        .where('isActive', isEqualTo: true)
-        .snapshots();
-
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: productsStream,
+      stream: _catalogStream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Padding(

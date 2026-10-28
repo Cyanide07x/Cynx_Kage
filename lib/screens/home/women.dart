@@ -16,12 +16,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class WomenScreen extends StatelessWidget {
   const WomenScreen({super.key});
 
+  static final Stream<QuerySnapshot<Map<String, dynamic>>> _productsStream =
+      FirebaseFirestore.instance
+          .collection('catalogProducts')
+          .where('isActive', isEqualTo: true)
+          .snapshots();
+
   @override
   Widget build(BuildContext context) {
-    final productsStream = FirebaseFirestore.instance
-        .collection('catalogProducts')
-        .where('isActive', isEqualTo: true)
-        .snapshots();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(top: 0, bottom: 30),
@@ -54,7 +56,7 @@ class WomenScreen extends StatelessWidget {
           const SizedBox(height: 22),
 
           StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream: productsStream,
+            stream: _productsStream,
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return const Text(
