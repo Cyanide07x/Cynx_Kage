@@ -272,7 +272,12 @@ Future<void> _placeOrder() async {
       deliveryCharge: _delivery,
       totalAmount: _total,
       paymentMethod: _selectedPaymentMethod!,
+      couponCode: _appliedCouponCode,
+      discountAmount: _discountAmount,
     );
+
+    // Clear cart both in Firestore and locally so bag is empty after checkout
+    await CartController.instance.clearCart();
 
     if (!mounted) return;
 
@@ -350,7 +355,7 @@ Future<void> _placeOrder() async {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 0),
                   Padding(
                     padding: const EdgeInsets.only(left: 60),
                     child: Text(
@@ -502,6 +507,7 @@ Future<void> _placeOrder() async {
                                   // to the Firebase callable function next.
                                   
 CouponWidget(
+  subtotal: _subtotal,
   isLoading: _isApplyingCoupon,
   appliedCode: _appliedCouponCode,
   discountAmount: _appliedCouponCode == null

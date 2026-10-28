@@ -23,6 +23,8 @@ class OrderService {
     required double deliveryCharge,
     required double totalAmount,
     required String paymentMethod,
+    String? couponCode,
+    double discountAmount = 0.0,
   }) async {
     final user = _auth.currentUser;
 
@@ -73,6 +75,8 @@ class OrderService {
           paymentMethod == 'COD' ? 'pending' : 'pending_payment',
       orderStatus:
           paymentMethod == 'COD' ? 'placed' : 'pending_payment',
+      couponCode: couponCode,
+      discountAmount: discountAmount,
       createdAt: DateTime.now(),
     );
 

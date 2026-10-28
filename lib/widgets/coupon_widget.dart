@@ -1,7 +1,9 @@
 
 import 'package:flutter/material.dart';
+import 'coupon_bottom_sheet.dart';
 
 class CouponWidget extends StatefulWidget {
+  final double subtotal;
   final bool isLoading;
   final String? appliedCode;
   final double? discountAmount;
@@ -12,6 +14,7 @@ class CouponWidget extends StatefulWidget {
 
   const CouponWidget({
     super.key,
+    this.subtotal = 0.0,
     this.isLoading = false,
     this.appliedCode,
     this.discountAmount,
@@ -109,6 +112,52 @@ class _CouponWidgetState extends State<CouponWidget> {
                       : const Text('Apply'),
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => CouponBottomSheet(
+                    subtotal: widget.subtotal,
+                    currentAppliedCode: widget.appliedCode,
+                    onApply: (code) {
+                      _controller.text = code;
+                      widget.onApply(code);
+                    },
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.confirmation_number_outlined,
+                      size: 16,
+                      color: colors.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'View all available coupons',
+                      style: TextStyle(
+                        color: colors.primary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 18,
+                      color: colors.primary,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ] else ...[
             Row(

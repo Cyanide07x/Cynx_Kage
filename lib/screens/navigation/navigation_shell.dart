@@ -13,6 +13,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:cynx_cage/screens/cart/cart_screen.dart';
+import 'package:cynx_cage/screens/cart/cart_controller.dart';
 import 'package:cynx_cage/screens/notifications/notification_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -37,8 +38,8 @@ import '../offers/offers_screen.dart';
 class NavigationShell extends StatefulWidget {
   const NavigationShell({super.key});
 
-  static _NavigationShellState? of(BuildContext context) {
-    return context.findAncestorStateOfType<_NavigationShellState>();
+  static NavigationShellState? of(BuildContext context) {
+    return context.findAncestorStateOfType<NavigationShellState>();
   }
 
   static void switchToTab(BuildContext context, int index) {
@@ -54,10 +55,16 @@ class NavigationShell extends StatefulWidget {
   }
 
   @override
-  State<NavigationShell> createState() => _NavigationShellState();
+  State<NavigationShell> createState() => NavigationShellState();
 }
 
-class _NavigationShellState extends State<NavigationShell> {
+class NavigationShellState extends State<NavigationShell> {
+  @override
+  void initState() {
+    super.initState();
+    CartController.instance.loadCart();
+  }
+
   void setIndex(int index) {
     if (index >= 0 && index < pages.length && index != selectedIndex) {
       setState(() {

@@ -247,6 +247,7 @@ class _NewArrivalsState extends State<NewArrivals>
                                 child: Image.network(
                                   image,
                                   fit: BoxFit.cover,
+                                  alignment: Alignment.topCenter,
                                   gaplessPlayback: true,
                                   errorBuilder:
                                       (context, error, stackTrace) {

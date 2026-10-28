@@ -14,6 +14,7 @@ import 'tracker.dart';
 import 'account_action_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'orders/my_order.dart';
+import '../navigation/navigation_shell.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -543,9 +544,41 @@ class _AccountScreenState extends State<AccountScreen> {
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Tracker(
-                      count: '03',
-                      title: 'Coupons',
+                    child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                      stream: FirebaseFirestore.instance
+                          .collection('coupons')
+                          .where('isActive', isEqualTo: true)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        final docs = snapshot.data?.docs ?? [];
+                        final now = DateTime.now();
+
+                        final validCount = docs.where((doc) {
+                          final data = doc.data();
+                          final expiresAt = data['expiresAt'];
+                          if (expiresAt is Timestamp &&
+                              expiresAt.toDate().isBefore(now)) {
+                            return false;
+                          }
+                          final maxUses = (data['maxUses'] as num?)?.toInt();
+                          final usedCount = (data['usedCount'] as num?)?.toInt() ?? 0;
+                          if (maxUses != null && usedCount >= maxUses) {
+                            return false;
+                          }
+                          return true;
+                        }).length;
+
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(18),
+                          onTap: () {
+                            NavigationShell.switchToTab(context, 2);
+                          },
+                          child: Tracker(
+                            count: validCount.toString().padLeft(2, '0'),
+                            title: 'Coupons',
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],

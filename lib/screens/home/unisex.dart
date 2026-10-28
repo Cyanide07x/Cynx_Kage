@@ -9,6 +9,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/appcolors.dart';
 import '../../widgets/trending.dart';
+import '../../widgets/product_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Displays a 2-column product grid for unisex items only.
@@ -87,12 +88,34 @@ class UnisexScreen extends StatelessWidget {
                   childAspectRatio: 0.85,
                 ),
                 itemBuilder: (context, index) {
-                  final product = products[index].data();
+                  final document = products[index];
+                  final product = document.data();
+                  final rawPrice = product['price'];
+                  final price = rawPrice is num
+                      ? rawPrice.toDouble()
+                      : double.tryParse(rawPrice?.toString() ?? '') ?? 0.0;
+
+                  final fullProduct = <String, dynamic>{
+                    ...product,
+                    'id': document.id,
+                  };
 
                   return TrendingProductCard(
+                    productId: document.id,
                     name: (product['name'] ?? 'Unnamed product').toString(),
-                    price: 'Rs. ${(product['price'] ?? 0).toString()}',
+                    price: 'Rs. ${price.toStringAsFixed(0)}',
+                    productPrice: price,
                     imageAsset: (product['imageUrl'] ?? '').toString(),
+                    description: (product['description'] ?? '').toString(),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (context) =>
+                              ProductPage(product: fullProduct),
+                        ),
+                      );
+                    },
                   );
                 },
               );

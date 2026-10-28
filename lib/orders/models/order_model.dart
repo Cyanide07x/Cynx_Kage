@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class OrderModel {
@@ -12,6 +11,8 @@ class OrderModel {
   final String paymentMethod;
   final String paymentStatus;
   final String orderStatus;
+  final String? couponCode;
+  final double discountAmount;
   final DateTime createdAt;
 
   const OrderModel({
@@ -25,6 +26,8 @@ class OrderModel {
     required this.paymentMethod,
     required this.paymentStatus,
     required this.orderStatus,
+    this.couponCode,
+    this.discountAmount = 0.0,
     required this.createdAt,
   });
 
@@ -39,6 +42,8 @@ class OrderModel {
       'paymentMethod': paymentMethod,
       'paymentStatus': paymentStatus,
       'orderStatus': orderStatus,
+      if (couponCode != null) 'couponCode': couponCode,
+      'discountAmount': discountAmount,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'wishlist_icon.dart';
+import 'product_page.dart';
 
 class Trending extends StatelessWidget {
   const Trending({super.key});
@@ -106,6 +107,11 @@ class Trending extends StatelessWidget {
                 final imageUrl =
                     (product['imageUrl'] ?? '').toString();
 
+                final fullProduct = <String, dynamic>{
+                  ...product,
+                  'id': document.id,
+                };
+
                 return TrendingProductCard(
                   productId: document.id,
                   name: (product['name'] ?? 'Unnamed product').toString(),
@@ -114,6 +120,14 @@ class Trending extends StatelessWidget {
                   imageAsset: imageUrl,
                   description:
                       (product['description'] ?? '').toString(),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (context) => ProductPage(product: fullProduct),
+                      ),
+                    );
+                  },
                 );
               },
             );
@@ -133,6 +147,7 @@ class TrendingProductCard extends StatefulWidget {
   final String? productId;
   final double? productPrice;
   final String description;
+  final VoidCallback? onTap;
 
   const TrendingProductCard({
     super.key,
@@ -142,6 +157,7 @@ class TrendingProductCard extends StatefulWidget {
     this.productId,
     this.productPrice,
     this.description = '',
+    this.onTap,
   });
 
   @override
@@ -187,6 +203,7 @@ class _TrendingProductCardState extends State<TrendingProductCard>
       return Image.network(
         image,
         fit: BoxFit.cover,
+        alignment: Alignment.topCenter,
         errorBuilder: (context, error, stackTrace) =>
             _imagePlaceholder(),
       );
@@ -195,6 +212,7 @@ class _TrendingProductCardState extends State<TrendingProductCard>
     return Image.asset(
       image,
       fit: BoxFit.cover,
+      alignment: Alignment.topCenter,
       errorBuilder: (context, error, stackTrace) =>
           _imagePlaceholder(),
     );
@@ -271,6 +289,15 @@ class _TrendingProductCardState extends State<TrendingProductCard>
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                ),
+
+                Positioned.fill(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: widget.onTap,
                     ),
                   ),
                 ),

@@ -53,7 +53,7 @@ class CouponService {
     }
 
     final discountType = data['discountType'] as String? ?? 'percentage';
-    final discountValue = (data['discountValue'] as num?)?.toDouble() ?? 0.0;
+    final discountValue = ((data['discountValue'] ?? data['discounValue']) as num?)?.toDouble() ?? 0.0;
     if (discountValue <= 0) {
       throw Exception('This coupon has an invalid discount.');
     }

@@ -368,7 +368,7 @@ class _OfferScreenState extends State<OfferScreen> {
             final code = data['code'] as String? ?? doc.id;
             final discountType = data['discountType'] as String? ?? 'percentage';
             final discountValue =
-                (data['discountValue'] as num?)?.toDouble() ?? 0.0;
+                ((data['discountValue'] ?? data['discounValue']) as num?)?.toDouble() ?? 0.0;
             final minSubtotal = (data['minSubtotal'] as num?)?.toDouble() ?? 0.0;
             final maxDiscount = (data['maxDiscount'] as num?)?.toDouble();
 

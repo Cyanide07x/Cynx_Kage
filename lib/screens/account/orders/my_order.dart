@@ -14,7 +14,7 @@ class MyOrdersScreen extends StatelessWidget {
     return '₹${amount.toStringAsFixed(0)}';
   }
 
-  String _formatDate(dynamic value) {
+  String formatDate(dynamic value) {
     if (value is! Timestamp) return 'Date unavailable';
 
     final date = value.toDate();
@@ -185,32 +185,22 @@ class MyOrdersScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 10),
                                   Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Order #${document.id}',
-                                          style: TextStyle(
-                                            color: currentColors.onSurface,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _formatDate(order['createdAt']),
-                                          style: TextStyle(
-                                            color: currentColors
-                                                .onSurfaceVariant,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Flexible(
-                                    child: Text(
+  child: FittedBox(
+    fit: BoxFit.scaleDown,
+    alignment: Alignment.centerLeft,
+    child: Text(
+      'Order #${document.id}',
+      maxLines: 1,
+      style: TextStyle(
+        color: currentColors.onSurface,
+        fontWeight: FontWeight.bold,
+        fontSize: 12,
+      ),
+    ),
+  ),
+),
+const SizedBox(width: 8),
+                                  Text(
                                       status.toUpperCase(),
                                       textAlign: TextAlign.end,
                                       style: TextStyle(
@@ -219,7 +209,7 @@ class MyOrdersScreen extends StatelessWidget {
                                         fontSize: 11,
                                       ),
                                     ),
-                                  ),
+                                  
                                 ],
                               ),
 

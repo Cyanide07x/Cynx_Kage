@@ -148,6 +148,8 @@ class _ProductPageState extends State<ProductPage>
   // HEADER
 
   Widget _buildHeader() {
+    final colors = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         _buildHeaderButton(
@@ -155,13 +157,27 @@ class _ProductPageState extends State<ProductPage>
           onTap: () => Navigator.of(context).maybePop(),
         ),
         const Spacer(),
-        _buildHeaderButton(
-          icon: Icons.shopping_cart,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const CartScreen(),
+        ListenableBuilder(
+          listenable: CartController.instance,
+          builder: (context, _) {
+            final count = CartController.instance.totalCount;
+
+            return Badge.count(
+              count: count,
+              isLabelVisible: count > 0,
+              backgroundColor: colors.primary,
+              textColor: colors.onPrimary,
+              alignment: const AlignmentDirectional(0.8, -0.6),
+              child: _buildHeaderButton(
+                icon: Icons.shopping_bag_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CartScreen(),
+                    ),
+                  );
+                },
               ),
             );
           },
@@ -215,12 +231,12 @@ class _ProductPageState extends State<ProductPage>
           ),
           child: Container(
             width: double.infinity,
-            height: 250,
+            height: 325,
             margin: const EdgeInsets.all(2.5),
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: BorderRadius.circular(10.8),
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(21.5),
             ),
             child: _images.isEmpty
                 ? _buildImagePlaceholder()
@@ -241,6 +257,8 @@ class _ProductPageState extends State<ProductPage>
                           width: double.infinity,
                           height: double.infinity,
                           fit: BoxFit.cover,
+                          alignment: Alignment.center,
+                          gaplessPlayback: true,
                           errorBuilder: (context, error, stackTrace) {
                             return _buildImagePlaceholder();
                           },
@@ -586,7 +604,7 @@ class _ProductBorderPainter extends CustomPainter {
 
     final borderRect = RRect.fromRectAndRadius(
       rect.deflate(strokeWidth / 2),
-      const Radius.circular(12),
+      const Radius.circular(24),
     );
 
     canvas.drawRRect(borderRect, paint);

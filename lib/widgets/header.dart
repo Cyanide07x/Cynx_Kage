@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import '../screens/cart/cart_controller.dart';
 
 /// Persistent top bar displayed at the top of [NavigationShell].
 ///
@@ -58,10 +59,24 @@ class Header extends StatelessWidget {
             color: colors.onSurfaceVariant,
             onPressed: onNotificationTap,
           ),
-          IconButton(
-            icon: const Icon(Icons.shopping_bag_outlined),
-            color: colors.onSurfaceVariant,
-            onPressed: onCartTap,
+          ListenableBuilder(
+            listenable: CartController.instance,
+            builder: (context, _) {
+              final count = CartController.instance.totalCount;
+
+              return Badge.count(
+                count: count,
+                isLabelVisible: count > 0,
+                backgroundColor: colors.primary,
+                textColor: colors.onPrimary,
+                alignment: const AlignmentDirectional(0.7, -0.6),
+                child: IconButton(
+                  icon: const Icon(Icons.shopping_bag_outlined),
+                  color: colors.onSurfaceVariant,
+                  onPressed: onCartTap,
+                ),
+              );
+            },
           ),
           const SizedBox(width: 5),
         ],

@@ -1,9 +1,9 @@
-
+import 'package:flutter/foundation.dart';
 import 'cart_item.dart';
 import 'cart_service.dart';
 
 /// Coordinates in-memory cart state and Firestore persistence.
-class CartController {
+class CartController extends ChangeNotifier {
   CartController._();
 
   static final CartController instance = CartController._();
@@ -13,6 +13,9 @@ class CartController {
   /// Current in-memory cart items.
   final List<CartItem> items = [];
 
+  /// Total units across all items in the cart.
+  int get totalCount => items.fold(0, (sum, item) => sum + item.quantity);
+
   /// Loads the signed-in user's cart from Firestore.
   Future<void> loadCart() async {
     final savedItems = await _cartService.loadCart();
@@ -20,6 +23,7 @@ class CartController {
     items
       ..clear()
       ..addAll(savedItems);
+    notifyListeners();
   }
 
   /// Adds an item or increases the quantity of an existing variation.
@@ -39,6 +43,7 @@ class CartController {
     } else {
       items.add(newItem);
     }
+    notifyListeners();
   }
 
   /// Updates an item's quantity and persists the change.
@@ -61,6 +66,7 @@ class CartController {
 
     if (existingItem != null) {
       existingItem.quantity = quantity;
+      notifyListeners();
     }
   }
 
@@ -74,11 +80,13 @@ class CartController {
           current.size == item.size &&
           current.color == item.color,
     );
+    notifyListeners();
   }
 
   /// Clears the signed-in user's cart.
   Future<void> clearCart() async {
     await _cartService.clearCart();
     items.clear();
+    notifyListeners();
   }
 }
