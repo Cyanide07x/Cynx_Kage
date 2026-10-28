@@ -224,103 +224,108 @@ class _TrendingProductCardState extends State<TrendingProductCard>
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return CustomPaint(
-          painter: _ProductBorderPainter(
-            progress: _controller.value,
-            accentColor: colors.primary,
-            secondaryColor: colors.secondary,
-            surfaceColor: colors.surface,
-          ),
-          child: Container(
-            width: double.infinity,
-            height: 250,
-            margin: const EdgeInsets.all(1.2),
-            clipBehavior: Clip.antiAlias,
+    final cardContent = Container(
+      width: double.infinity,
+      height: 250,
+      margin: const EdgeInsets.all(1.2),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(18.8),
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          _buildProductImage(),
+
+          const DecoratedBox(
             decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(18.8),
-            ),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                _buildProductImage(),
-
-                const DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Color(0x22000000),
-                        Color(0xE6000000),
-                      ],
-                      stops: [0.35, 0.58, 1.0],
-                    ),
-                  ),
-                ),
-
-                Padding(
-                  padding: const EdgeInsets.all(15),
-                  child: Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: colors.onSurface,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          widget.price,
-                          style: TextStyle(
-                            color: colors.onSurfaceVariant,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                Positioned.fill(
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: widget.onTap,
-                    ),
-                  ),
-                ),
-
-                if (widget.productId != null)
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: WishlistIcon(
-                      productId: widget.productId!,
-                      name: widget.name,
-                      price: widget.productPrice ?? 0.0,
-                      imageUrl: widget.imageAsset ?? '',
-                      description: widget.description,
-                    ),
-                  ),
-              ],
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Color(0x22000000),
+                  Color(0xE6000000),
+                ],
+                stops: [0.35, 0.58, 1.0],
+              ),
             ),
           ),
-        );
-      },
+
+          Padding(
+            padding: const EdgeInsets.all(15),
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: colors.onSurface,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    widget.price,
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          Positioned.fill(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onTap,
+              ),
+            ),
+          ),
+
+          if (widget.productId != null)
+            Positioned(
+              top: 10,
+              right: 10,
+              child: WishlistIcon(
+                productId: widget.productId!,
+                name: widget.name,
+                price: widget.productPrice ?? 0.0,
+                imageUrl: widget.imageAsset ?? '',
+                description: widget.description,
+              ),
+            ),
+        ],
+      ),
+    );
+
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _controller,
+        child: cardContent,
+        builder: (context, child) {
+          return CustomPaint(
+            painter: _ProductBorderPainter(
+              progress: _controller.value,
+              accentColor: colors.primary,
+              secondaryColor: colors.secondary,
+              surfaceColor: colors.surface,
+            ),
+            child: child,
+          );
+        },
+      ),
     );
   }
 }
