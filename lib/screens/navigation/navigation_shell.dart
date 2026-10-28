@@ -37,11 +37,34 @@ import '../offers/offers_screen.dart';
 class NavigationShell extends StatefulWidget {
   const NavigationShell({super.key});
 
+  static _NavigationShellState? of(BuildContext context) {
+    return context.findAncestorStateOfType<_NavigationShellState>();
+  }
+
+  static void switchToTab(BuildContext context, int index) {
+    final state = of(context);
+    if (state != null) {
+      state.setIndex(index);
+    } else {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const NavigationShell()),
+        (route) => false,
+      );
+    }
+  }
+
   @override
   State<NavigationShell> createState() => _NavigationShellState();
 }
 
 class _NavigationShellState extends State<NavigationShell> {
+  void setIndex(int index) {
+    if (index >= 0 && index < pages.length && index != selectedIndex) {
+      setState(() {
+        selectedIndex = index;
+      });
+    }
+  }
   /// Index of the currently active bottom-nav tab (0 = Home).
   int selectedIndex = 0;
 

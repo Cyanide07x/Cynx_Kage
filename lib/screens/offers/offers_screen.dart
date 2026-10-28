@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import '../../widgets/offer_filter_button.dart';
 import '../../widgets/flash_sale_card.dart';
 import '../../widgets/coupon_card.dart';
+import '../navigation/navigation_shell.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class OfferScreen extends StatefulWidget {
   const OfferScreen({super.key});
@@ -38,7 +40,7 @@ class _OfferScreenState extends State<OfferScreen> {
       discountText: 'UP TO 50%\nOFF',
       description: 'On streetwear, hoodies & more',
       onShopNow: () {
-        // Connect streetwear products later.
+        NavigationShell.switchToTab(context, 0);
       },
     ),
     FlashSaleCard(
@@ -47,7 +49,7 @@ class _OfferScreenState extends State<OfferScreen> {
       discountText: '30% OFF',
       description: 'Discover our latest collection',
       onShopNow: () {
-        // Connect new-arrival products later.
+        NavigationShell.switchToTab(context, 0);
       },
     ),
 
@@ -277,27 +279,7 @@ class _OfferScreenState extends State<OfferScreen> {
                         ),
                         const SizedBox(height: 12),
 
-                        const CouponCard(
-                          discount: '20%',
-                          description: 'On your first order',
-                          code: 'FIRST20',
-                        ),
-                        const SizedBox(height: 12),
-
-                        const CouponCard(
-                          discount: '50%',
-                          description:
-                              'On your orders above RS. 1999',
-                          code: 'OVER1999',
-                        ),
-                        const SizedBox(height: 12),
-
-                        const CouponCard(
-                          discount: 'B2G1',
-                          description:
-                              'Buy 2 Get 1 On your first order',
-                          code: 'B2G1',
-                        ),
+                        _buildCouponsSection(colors),
                         const SizedBox(height: 20),
                       ],
                     ],
@@ -308,6 +290,117 @@ class _OfferScreenState extends State<OfferScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCouponsSection(ColorScheme colors) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('coupons')
+          .where('isActive', isEqualTo: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Text(
+                'Unable to load coupons.',
+                style: TextStyle(color: colors.onSurfaceVariant),
+              ),
+            ),
+          );
+        }
+
+        final docs = snapshot.data?.docs ?? [];
+        final now = DateTime.now();
+
+        final validCoupons = docs.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+
+          final expiresAt = data['expiresAt'];
+          if (expiresAt is Timestamp && expiresAt.toDate().isBefore(now)) {
+            return false;
+          }
+
+          final maxUses = (data['maxUses'] as num?)?.toInt();
+          final usedCount = (data['usedCount'] as num?)?.toInt() ?? 0;
+          if (maxUses != null && usedCount >= maxUses) {
+            return false;
+          }
+
+          return true;
+        }).toList();
+
+        if (validCoupons.isEmpty) {
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: colors.outlineVariant),
+            ),
+            child: Center(
+              child: Text(
+                'No active coupons available right now.',
+                style: TextStyle(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          );
+        }
+
+        return Column(
+          children: validCoupons.map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            final code = data['code'] as String? ?? doc.id;
+            final discountType = data['discountType'] as String? ?? 'percentage';
+            final discountValue =
+                (data['discountValue'] as num?)?.toDouble() ?? 0.0;
+            final minSubtotal = (data['minSubtotal'] as num?)?.toDouble() ?? 0.0;
+            final maxDiscount = (data['maxDiscount'] as num?)?.toDouble();
+
+            final discountText = discountType == 'percentage'
+                ? '${discountValue.toInt()}%'
+                : '₹${discountValue.toInt()}';
+
+            String description = (data['description'] as String?)?.trim() ?? '';
+            if (description.isEmpty) {
+              if (minSubtotal > 0 && maxDiscount != null && maxDiscount > 0) {
+                description =
+                    'On orders above ₹${minSubtotal.toInt()} (Up to ₹${maxDiscount.toInt()})';
+              } else if (minSubtotal > 0) {
+                description = 'On orders above ₹${minSubtotal.toInt()}';
+              } else if (maxDiscount != null && maxDiscount > 0) {
+                description = 'Up to ₹${maxDiscount.toInt()} off';
+              } else {
+                description = 'Valid on all orders';
+              }
+            }
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: CouponCard(
+                discount: discountText,
+                description: description,
+                code: code,
+              ),
+            );
+          }).toList(),
+        );
+      },
     );
   }
 }
