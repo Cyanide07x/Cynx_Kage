@@ -21,6 +21,11 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  // Local Firebase emulators for development only.
+  // await FirebaseAuth.instance.useAuthEmulator('10.0.2.2', 9099);
+
+  // Android emulator address for the local Functions emulator.
+  // FirebaseFunctions.instance.useFunctionsEmulator('10.0.2.2', 5001);
 
   runApp(const CynxKageApp());
 }

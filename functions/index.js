@@ -4,7 +4,7 @@ const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const {initializeApp} = require("firebase-admin/app");
 const {getFirestore, Timestamp} = require("firebase-admin/firestore");
 
-setGlobalOptions({maxInstances: 10});
+setGlobalOptions({maxInstances: 10, region: "asia-south2",});
 
 initializeApp();
 

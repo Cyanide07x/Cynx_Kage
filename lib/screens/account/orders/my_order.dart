@@ -27,8 +27,6 @@ class MyOrdersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
 
     return AnimatedBuilder(
       animation: themeController,

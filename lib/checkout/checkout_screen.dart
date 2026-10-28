@@ -9,6 +9,8 @@ import 'payment_screen.dart';
 import '../orders/services/order_service.dart';
 import '../orders/screens/order_confirmation_screen.dart';
 import '../widgets/coupon_widget.dart';
+import '../services/coupon_service.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -24,6 +26,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   SavedAddress? _selectedAddress;
   String? _selectedPaymentMethod;
   bool _isPlacingOrder = false;
+
+  //coupon service
+
+  final CouponService _couponService = CouponService();
+
+bool _isApplyingCoupon = false;
+String? _appliedCouponCode;
+double _discountAmount = 0;
+String? _couponMessage;
+bool _couponHasError = false;
 
   Future<void> _selectDeliveryAddress() async {
     final address = await Navigator.push<SavedAddress>(
@@ -59,7 +71,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return _deliveryCharge;
   }
 
-  double get _total => _subtotal + _delivery;
+  double get _total =>
+      (_subtotal - _discountAmount + _delivery)
+          .clamp(0.0, double.infinity)
+          .toDouble();
 
   int get _totalQuantity => _cartItems.fold(
         0,
@@ -96,6 +111,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  void _clearCouponAfterCartChange() {
+    _appliedCouponCode = null;
+    _discountAmount = 0;
+    _couponMessage = null;
+    _couponHasError = false;
+  }
+
   Future<void> _updateQuantity(CartItem item, int quantity) async {
     if (quantity < 1) return;
 
@@ -103,7 +125,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       await CartController.instance.updateQuantity(item, quantity);
 
       if (!mounted) return;
-      setState(() {});
+      setState(() {
+        _clearCouponAfterCartChange();
+      });
     } catch (error) {
       if (!mounted) return;
 
@@ -118,7 +142,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       await CartController.instance.removeItem(item);
 
       if (!mounted) return;
-      setState(() {});
+      setState(() {
+        _clearCouponAfterCartChange();
+      });
     } catch (error) {
       if (!mounted) return;
 
@@ -129,6 +155,78 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   String _money(double amount) => '₹${amount.toStringAsFixed(0)}';
+  
+Future<void> _applyCoupon(String code) async {
+  if (_isApplyingCoupon || _appliedCouponCode != null) return;
+
+  if (_cartItems.isEmpty) {
+    setState(() {
+      _couponMessage = 'Your cart is empty.';
+      _couponHasError = true;
+    });
+    return;
+  }
+
+  setState(() {
+    _isApplyingCoupon = true;
+    _couponMessage = null;
+    _couponHasError = false;
+  });
+
+  try {
+    final result = await _couponService.validateCoupon(
+      code: code,
+      subtotal: _subtotal,
+    );
+
+    final valid = result['valid'] == true;
+    final discount = (result['discountAmount'] as num?)?.toDouble();
+
+    if (!valid || discount == null || discount < 0 || discount > _subtotal) {
+      throw Exception('The coupon response was invalid.');
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _appliedCouponCode = result['code'] as String? ?? code.toUpperCase();
+      _discountAmount = discount;
+      _couponMessage =
+          result['message'] as String? ?? 'Coupon applied successfully.';
+      _couponHasError = false;
+    });
+  } on FirebaseFunctionsException catch (error) {
+    if (!mounted) return;
+
+    setState(() {
+      _couponMessage = error.message ?? 'Unable to validate this coupon.';
+      _couponHasError = true;
+    });
+  } catch (error) {
+    if (!mounted) return;
+
+    setState(() {
+      _couponMessage = error.toString().replaceFirst('Exception: ', '').trim();
+      _couponHasError = true;
+    });
+  } finally {
+    if (mounted) {
+      setState(() {
+        _isApplyingCoupon = false;
+      });
+    }
+  }
+}
+
+void _removeCoupon() {
+  setState(() {
+    _appliedCouponCode = null;
+    _discountAmount = 0;
+    _couponMessage = 'Coupon removed.';
+    _couponHasError = false;
+  });
+}
+
 
 
 
@@ -402,17 +500,30 @@ Future<void> _placeOrder() async {
 
                                   // Coupon entry UI. Validation will be connected
                                   // to the Firebase callable function next.
-                                  CouponWidget(
-                                    onApply: (code) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Coupon entered: $code'),
-                                        ),
-                                      );
-                                    },
-                                    onRemove: () {},
-                                  ),
+                                  
+CouponWidget(
+  isLoading: _isApplyingCoupon,
+  appliedCode: _appliedCouponCode,
+  discountAmount: _appliedCouponCode == null
+      ? null
+      : _discountAmount,
+  message: _couponMessage,
+  isError: _couponHasError,
+  onApply: _applyCoupon,
+  onRemove: _removeCoupon,
+),
 
+
+                                  const SizedBox(height: 16),
+                                  Divider(color: colors.outlineVariant),
+                                  const SizedBox(height: 12),
+                                  if (_appliedCouponCode != null) ...[
+                                    const SizedBox(height: 12),
+                                    _summaryRow(
+                                      'Coupon discount',
+                                      '-${_money(_discountAmount)}',
+                                    ),
+                                  ],
                                   const SizedBox(height: 16),
                                   Divider(color: colors.outlineVariant),
                                   const SizedBox(height: 12),
