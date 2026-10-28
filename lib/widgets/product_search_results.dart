@@ -2,6 +2,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import 'product_page.dart';
 import 'trending.dart';
 
 class ProductSearchResults extends StatelessWidget {
@@ -319,6 +320,11 @@ class ProductSearchResults extends StatelessWidget {
                         ) ??
                         0.0;
 
+                final fullProduct = <String, dynamic>{
+                  ...product,
+                  'id': document.id,
+                };
+
                 return TrendingProductCard(
                   productId: document.id,
                   name: (product['name'] ?? 'Unnamed product')
@@ -329,6 +335,14 @@ class ProductSearchResults extends StatelessWidget {
                       .toString(),
                   description:
                       (product['description'] ?? '').toString(),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (context) => ProductPage(product: fullProduct),
+                      ),
+                    );
+                  },
                 );
               },
             ),
