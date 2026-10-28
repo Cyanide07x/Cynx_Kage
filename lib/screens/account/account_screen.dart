@@ -516,9 +516,19 @@ class _AccountScreenState extends State<AccountScreen> {
                               .snapshots(),
                       builder: (context, snapshot) {
                         final count = snapshot.data?.docs.length ?? 0;
-                        return Tracker(
-                          count: count.toString().padLeft(2, '0'),
-                          title: 'Orders',
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(18),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const MyOrdersScreen(),
+                              ),
+                            );
+                          },
+                          child: Tracker(
+                            count: count.toString().padLeft(2, '0'),
+                            title: 'Orders',
+                          ),
                         );
                       },
                     ),
@@ -535,9 +545,15 @@ class _AccountScreenState extends State<AccountScreen> {
                               .snapshots(),
                       builder: (context, snapshot) {
                         final count = snapshot.data?.docs.length ?? 0;
-                        return Tracker(
-                          count: count.toString().padLeft(2, '0'),
-                          title: 'Wishlist',
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(18),
+                          onTap: () {
+                            NavigationShell.switchToTab(context, 1);
+                          },
+                          child: Tracker(
+                            count: count.toString().padLeft(2, '0'),
+                            title: 'Wishlist',
+                          ),
                         );
                       },
                     ),

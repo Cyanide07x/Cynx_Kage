@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../screens/cart/cart_screen.dart';
@@ -25,13 +26,14 @@ class _ProductPageState extends State<ProductPage>
     with SingleTickerProviderStateMixin {
   int _currentPage = 0;
   String? _selectedSize;
+  late Map<String, dynamic> _productData;
 
   late final AnimationController _borderController;
   late final PageController _pageController;
   late final List<String> _images;
 
   String get _productId {
-    final product = widget.product;
+    final product = _productData;
 
     for (final key in ['id', 'productId', 'slug']) {
       final value = product[key];
@@ -49,7 +51,7 @@ class _ProductPageState extends State<ProductPage>
   }
 
   double get _productPrice {
-    final value = widget.product['price'];
+    final value = _productData['price'];
 
     if (value is num) return value.toDouble();
 
@@ -57,13 +59,13 @@ class _ProductPageState extends State<ProductPage>
   }
 
   String get _productName =>
-      (widget.product['name'] ?? 'Product').toString();
+      (_productData['name'] ?? 'Product').toString();
 
   String get _productImage =>
-      (widget.product['imageUrl'] ?? '').toString();
+      (_productData['imageUrl'] ?? '').toString();
 
   String get _productDescription =>
-      (widget.product['description'] ?? '').toString();
+      (_productData['description'] ?? '').toString();
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +101,7 @@ class _ProductPageState extends State<ProductPage>
                   children: [
                     Expanded(
                       child: ProductDetails(
-                        product: widget.product,
+                        product: _productData,
                         onSizeChanged: (size) {
                           setState(() {
                             _selectedSize = size;
@@ -133,7 +135,7 @@ class _ProductPageState extends State<ProductPage>
                 // This is outside the Row, so it isn't constrained
                 // by the width reserved for the wishlist icon.
                 ProductDescription(
-                  product: widget.product,
+                  product: _productData,
                 ),
 
                 const SizedBox(height: 20),
@@ -167,10 +169,14 @@ class _ProductPageState extends State<ProductPage>
               isLabelVisible: count > 0,
               backgroundColor: colors.primary,
               textColor: colors.onPrimary,
-              alignment: const AlignmentDirectional(0.8, -0.6),
-              child: _buildHeaderButton(
-                icon: Icons.shopping_bag_outlined,
-                onTap: () {
+              alignment: const AlignmentDirectional(0.7, -0.6),
+              child: IconButton(
+                icon: Icon(
+                  Icons.shopping_bag_outlined,
+                  color: colors.onSurface,
+                  size: 24,
+                ),
+                onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -369,7 +375,7 @@ class _ProductPageState extends State<ProductPage>
           imageUrl: _productImage,
           price: _productPrice,
           size: _selectedSize!,
-          color: (widget.product['color'] ?? 'Default').toString(),
+          color: (_productData['color'] ?? 'Default').toString(),
         ),
       );
 
@@ -413,8 +419,37 @@ class _ProductPageState extends State<ProductPage>
   @override
   void initState() {
     super.initState();
+    _productData = Map<String, dynamic>.from(widget.product);
     _initializeControllers();
     _initializeImages();
+    _fetchFullProductIfNeeded();
+  }
+
+  Future<void> _fetchFullProductIfNeeded() async {
+    final sizes = _productData['sizes'];
+    final bool hasSizes = sizes is List && sizes.isNotEmpty;
+    final productId = _productId;
+    if (productId.isEmpty || hasSizes) return;
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('products')
+          .doc(productId)
+          .get();
+      if (doc.exists && doc.data() != null && mounted) {
+        setState(() {
+          _productData = {
+            ...doc.data()!,
+            'id': doc.id,
+            ..._productData,
+            ...doc.data()!,
+          };
+          _initializeImages();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching product details: $e');
+    }
   }
 
   void _initializeControllers() {
@@ -427,8 +462,8 @@ class _ProductPageState extends State<ProductPage>
   }
 
   void _initializeImages() {
-    final imageUrl = widget.product['imageUrl'];
-    final galleryImages = widget.product['galleryImages'];
+    final imageUrl = _productData['imageUrl'];
+    final galleryImages = _productData['galleryImages'];
 
     final images = <String>[];
 

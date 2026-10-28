@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/appcolors.dart';
+import '../../widgets/product_page.dart';
 import '../../widgets/trending.dart';
 import 'wishlist_controller.dart';
 
@@ -211,6 +212,23 @@ class _WishlistScreenState extends State<WishlistScreen> {
                           productPrice: item.price,
                           imageAsset: item.imageUrl,
                           description: item.description,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (context) => ProductPage(
+                                  product: {
+                                    'id': item.productId,
+                                    'productId': item.productId,
+                                    'name': item.name,
+                                    'price': item.price,
+                                    'imageUrl': item.imageUrl,
+                                    'description': item.description,
+                                  },
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
                     );
