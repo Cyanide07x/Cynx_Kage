@@ -167,7 +167,7 @@ I'm continuing to improve the application, refine the user experience, and learn
 
 ## 📄 License
 
-This project is currently a personal development project. A license has not been specified yet. If you intend to make the code available for reuse, consider adding an appropriate open-source license.
+This project is currently a personal development project. A license has not been specified yet.
 
 ---
 
