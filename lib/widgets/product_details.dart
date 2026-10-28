@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class ProductDetails extends StatefulWidget {
   final Map<String, dynamic> product;
   final ValueChanged<String?> onSizeChanged;
+  final VoidCallback? onRatingTap;
 
   const ProductDetails({
     super.key,
     required this.product,
     required this.onSizeChanged,
+    this.onRatingTap,
   });
 
   @override
@@ -35,7 +37,70 @@ class _ProductDetailsState extends State<ProductDetails> {
           ),
         ),
 
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
+
+        // Rating and review count badge
+        InkWell(
+          onTap: widget.onRatingTap,
+          borderRadius: BorderRadius.circular(6),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colors.surface,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: colors.outlineVariant,
+                      width: 0.8,
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.star_rounded,
+                        size: 14,
+                        color: Color(0xFFFFB800),
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        '4.8',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '128 ratings',
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 14,
+                  color: colors.onSurfaceVariant.withValues(alpha: 0.6),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 10),
 
         // Product Price
         Text(

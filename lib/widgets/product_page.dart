@@ -9,6 +9,7 @@ import '../screens/cart/cart_item.dart';
 import '../screens/account/account_action_button.dart';
 import 'product_details.dart';
 import 'wishlist_icon.dart';
+import 'reviews/reviews_section.dart';
 
 class ProductPage extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -25,6 +26,18 @@ class ProductPage extends StatefulWidget {
 class _ProductPageState extends State<ProductPage>
     with SingleTickerProviderStateMixin {
   int _currentPage = 0;
+  final GlobalKey _reviewsKey = GlobalKey();
+
+  void _scrollToReviews() {
+    final targetContext = _reviewsKey.currentContext;
+    if (targetContext != null) {
+      Scrollable.ensureVisible(
+        targetContext,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
   String? _selectedSize;
   late Map<String, dynamic> _productData;
 
@@ -107,6 +120,7 @@ class _ProductPageState extends State<ProductPage>
                             _selectedSize = size;
                           });
                         },
+                        onRatingTap: _scrollToReviews,
                       ),
                     ),
 
@@ -136,6 +150,13 @@ class _ProductPageState extends State<ProductPage>
                 // by the width reserved for the wishlist icon.
                 ProductDescription(
                   product: _productData,
+                ),
+
+                const SizedBox(height: 24),
+
+                // CUSTOMER REVIEWS SECTION
+                ReviewsSection(
+                  key: _reviewsKey,
                 ),
 
                 const SizedBox(height: 20),
