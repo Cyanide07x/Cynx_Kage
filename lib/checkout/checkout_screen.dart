@@ -10,7 +10,6 @@ import '../orders/services/order_service.dart';
 import '../orders/screens/order_confirmation_screen.dart';
 import '../widgets/coupon_widget.dart';
 import '../services/coupon_service.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -194,13 +193,6 @@ Future<void> _applyCoupon(String code) async {
       _couponMessage =
           result['message'] as String? ?? 'Coupon applied successfully.';
       _couponHasError = false;
-    });
-  } on FirebaseFunctionsException catch (error) {
-    if (!mounted) return;
-
-    setState(() {
-      _couponMessage = error.message ?? 'Unable to validate this coupon.';
-      _couponHasError = true;
     });
   } catch (error) {
     if (!mounted) return;

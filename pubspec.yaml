@@ -39,7 +39,6 @@ flutter:
 
   assets:
     - assets/images/Herotag.svg
-    - assets/images/searchbar.svg
 
 dependency_overrides:
   path_provider_android: 2.2.17
