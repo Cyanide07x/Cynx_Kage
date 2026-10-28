@@ -30,7 +30,7 @@ class _ProductPageState extends State<ProductPage>
 
   late final AnimationController _borderController;
   late final PageController _pageController;
-  late final List<String> _images;
+  List<String> _images = [];
 
   String get _productId {
     final product = _productData;
@@ -426,14 +426,18 @@ class _ProductPageState extends State<ProductPage>
   }
 
   Future<void> _fetchFullProductIfNeeded() async {
-    final sizes = _productData['sizes'];
-    final bool hasSizes = sizes is List && sizes.isNotEmpty;
     final productId = _productId;
-    if (productId.isEmpty || hasSizes) return;
+    if (productId.isEmpty) return;
+
+    final hasGallery = _productData['galleryImages'] != null ||
+        _productData['images'] != null ||
+        _productData['gallery'] != null;
+    final hasSizes = _productData['sizes'] != null;
+    if (hasGallery && hasSizes) return;
 
     try {
       final doc = await FirebaseFirestore.instance
-          .collection('products')
+          .collection('catalogProducts')
           .doc(productId)
           .get();
       if (doc.exists && doc.data() != null && mounted) {
@@ -463,7 +467,9 @@ class _ProductPageState extends State<ProductPage>
 
   void _initializeImages() {
     final imageUrl = _productData['imageUrl'];
-    final galleryImages = _productData['galleryImages'];
+    final gallery = _productData['galleryImages'] ??
+        _productData['images'] ??
+        _productData['gallery'];
 
     final images = <String>[];
 
@@ -471,8 +477,8 @@ class _ProductPageState extends State<ProductPage>
       images.add(imageUrl);
     }
 
-    if (galleryImages is List) {
-      for (final image in galleryImages) {
+    if (gallery is List) {
+      for (final image in gallery) {
         if (image is String && image.isNotEmpty) {
           images.add(image);
         }
