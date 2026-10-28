@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../screens/cart/cart_screen.dart';
@@ -279,16 +280,15 @@ class _ProductPageState extends State<ProductPage>
                       return GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () => _openFullScreenImage(index),
-                        child: Image.network(
-                          _images[index],
+                        child: CachedNetworkImage(
+                          imageUrl: _images[index],
                           width: double.infinity,
                           height: double.infinity,
                           fit: BoxFit.cover,
                           alignment: Alignment.center,
-                          gaplessPlayback: true,
-                          errorBuilder: (context, error, stackTrace) {
-                            return _buildImagePlaceholder();
-                          },
+                          memCacheWidth: 1000,
+                          placeholder: (context, url) => _buildImagePlaceholder(),
+                          errorWidget: (context, url, error) => _buildImagePlaceholder(),
                         ),
                       );
                     },
@@ -565,16 +565,17 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
                 child: InteractiveViewer(
                   minScale: 1,
                   maxScale: 4,
-                  child: Image.network(
-                    widget.images[index],
+                  child: CachedNetworkImage(
+                    imageUrl: widget.images[index],
                     fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(
-                        Icons.broken_image_outlined,
-                        color: Colors.white54,
-                        size: 48,
-                      );
-                    },
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                    errorWidget: (context, url, error) => const Icon(
+                      Icons.broken_image_outlined,
+                      color: Colors.white54,
+                      size: 48,
+                    ),
                   ),
                 ),
               );

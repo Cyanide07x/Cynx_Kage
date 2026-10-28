@@ -1,4 +1,5 @@
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import 'cart_item.dart';
@@ -42,16 +43,18 @@ class CartCard extends StatelessWidget {
                       color: colors.onSurfaceVariant,
                       size: 30,
                     )
-                  : Image.network(
-                      item.imageUrl,
+                  : CachedNetworkImage(
+                      imageUrl: item.imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          Icons.broken_image_outlined,
-                          color: colors.onSurfaceVariant,
-                          size: 30,
-                        );
-                      },
+                      memCacheWidth: 250,
+                      placeholder: (context, url) => Container(
+                        color: colors.surfaceContainerHighest,
+                      ),
+                      errorWidget: (context, url, error) => Icon(
+                        Icons.broken_image_outlined,
+                        color: colors.onSurfaceVariant,
+                        size: 30,
+                      ),
                     ),
             ),
           ),

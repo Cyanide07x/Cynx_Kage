@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import 'wishlist_icon.dart';
@@ -200,12 +201,13 @@ class _TrendingProductCardState extends State<TrendingProductCard>
     }
 
     if (image.startsWith('http://') || image.startsWith('https://')) {
-      return Image.network(
-        image,
+      return CachedNetworkImage(
+        imageUrl: image,
         fit: BoxFit.cover,
         alignment: Alignment.topCenter,
-        errorBuilder: (context, error, stackTrace) =>
-            _imagePlaceholder(),
+        memCacheWidth: 600,
+        placeholder: (context, url) => _imagePlaceholder(),
+        errorWidget: (context, url, error) => _imagePlaceholder(),
       );
     }
 

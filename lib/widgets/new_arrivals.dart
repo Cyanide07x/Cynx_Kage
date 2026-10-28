@@ -2,6 +2,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import 'product_page.dart';
@@ -244,21 +245,27 @@ class _NewArrivalsState extends State<NewArrivals>
 
                               return GestureDetector(
                                 onTap: () => _openProduct(product),
-                                child: Image.network(
-                                  image,
+                                child: CachedNetworkImage(
+                                  imageUrl: image,
                                   fit: BoxFit.cover,
                                   alignment: Alignment.topCenter,
-                                  gaplessPlayback: true,
-                                  errorBuilder:
-                                      (context, error, stackTrace) {
-                                    return Center(
-                                      child: Icon(
-                                        Icons.broken_image,
-                                        color: colors.onSurfaceVariant,
-                                        size: 48,
+                                  memCacheWidth: 800,
+                                  placeholder: (context, url) => Container(
+                                    color: colors.surface,
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: colors.primary,
                                       ),
-                                    );
-                                  },
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) => Center(
+                                    child: Icon(
+                                      Icons.broken_image,
+                                      color: colors.onSurfaceVariant,
+                                      size: 48,
+                                    ),
+                                  ),
                                 ),
                               );
                             },
