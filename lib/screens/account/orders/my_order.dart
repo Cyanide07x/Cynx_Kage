@@ -43,16 +43,72 @@ class MyOrdersScreen extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: currentTheme.scaffoldBackgroundColor,
-          appBar: AppBar(
-            backgroundColor: currentTheme.scaffoldBackgroundColor,
-            foregroundColor: currentColors.onSurface,
-            elevation: 0,
-            title: const Text(
-              'My Orders',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          body: user == null
+          body: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 20,
+                    right: 20,
+                    top: 25,
+                    bottom: 15,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: currentColors.outlineVariant,
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () {
+                            if (Navigator.of(context).canPop()) {
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          icon: Icon(
+                            Icons.arrow_back,
+                            color: currentColors.onSurface,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'My Orders',
+                              style: TextStyle(
+                                color: currentColors.onSurface,
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Track & manage your orders',
+                              style: TextStyle(
+                                color: currentColors.onSurfaceVariant,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: user == null
               ? const Center(
                   child: Text('Please sign in to view your orders.'),
                 )
@@ -299,7 +355,11 @@ const SizedBox(width: 8),
                     );
                   },
                 ),
-        );
+              ),
+            ],
+          ),
+        ),
+      );
       },
     );
   }
