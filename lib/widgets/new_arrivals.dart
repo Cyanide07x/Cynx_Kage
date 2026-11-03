@@ -1,9 +1,11 @@
 
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+
+import '../models/product.dart';
+import '../services/product_service.dart';
 
 import 'product_page.dart';
 import 'wishlist_icon.dart';
@@ -17,25 +19,27 @@ class NewArrivals extends StatefulWidget {
 
 class _NewArrivalsState extends State<NewArrivals>
     with SingleTickerProviderStateMixin {
-  // Start far into the page sequence to allow scrolling in either direction.
   static const int _initialPage = 1000;
 
   late final PageController _pageController;
+  late final AnimationController _newAnimationController;
+  late final Future<List<Product>> _productsFuture;
+
+  final ProductService _productService = ProductService();
+
   Timer? _timer;
-
   int _currentPage = _initialPage;
-
-  late AnimationController _newAnimationController;
-
-  final Stream<QuerySnapshot<Map<String, dynamic>>> _productsStream =
-      FirebaseFirestore.instance
-          .collection('catalogProducts')
-          .where('isActive', isEqualTo: true)
-          .snapshots();
 
   @override
   void initState() {
     super.initState();
+
+    // Fetch only products marked as New Arrivals.
+    // Drafts are included for development/testing.
+    _productsFuture = _productService.fetchProducts(
+      includeDrafts: true,
+      isNewArrival: true,
+    );
 
     _pageController = PageController(
       initialPage: _initialPage,
@@ -46,7 +50,7 @@ class _NewArrivalsState extends State<NewArrivals>
       duration: const Duration(milliseconds: 900),
     )..repeat(reverse: true);
 
-    // Automatically advance forever.
+    // Automatically move to the next product.
     _timer = Timer.periodic(const Duration(seconds: 2), (_) {
       if (!mounted || !_pageController.hasClients) return;
 
@@ -68,26 +72,58 @@ class _NewArrivalsState extends State<NewArrivals>
     super.dispose();
   }
 
-  void _openProduct(Map<String, dynamic> product) {
+  int _productIndex(int page, int count) {
+    return ((page % count) + count) % count;
+  }
+
+  // Product prices currently live inside product variants.
+  double _priceOf(Product product) {
+    if (product.variants.isEmpty) return 0.0;
+
+    return product.variants
+        .map((variant) => variant.price)
+        .reduce((a, b) => a < b ? a : b);
+  }
+
+  // Temporary compatibility map for the existing ProductPage.
+  // We will migrate ProductPage to FastAPI separately.
+  Map<String, dynamic> _productToMap(Product product) {
+  final imageUrl = product.primaryImageUrl ?? '';
+
+  return {
+    'id': product.productId.toString(),
+    'productId': product.productId.toString(),
+    'name': product.productName,
+    'slug': product.slug,
+    'description': product.description ?? '',
+    'price': _priceOf(product),
+    'imageUrl': imageUrl,
+    'galleryImages': product.images
+        .map((image) => image.imageUrl)
+        .where((url) => url.isNotEmpty)
+        .toList(),
+  };
+}
+
+  void _openProduct(Product product) {
     Navigator.push(
       context,
       MaterialPageRoute<void>(
-        builder: (context) => ProductPage(product: product),
+        builder: (context) => ProductPage(
+          product: _productToMap(product),
+        ),
       ),
     );
   }
 
-  double _priceOf(Map<String, dynamic> product) {
-    final value = product['price'];
-
-    if (value is num) return value.toDouble();
-
-    return double.tryParse(value?.toString() ?? '') ?? 0.0;
-  }
-
-  // Handles both forward and backward page positions.
-  int _productIndex(int page, int productCount) {
-    return ((page % productCount) + productCount) % productCount;
+  Widget _imagePlaceholder(Color color) {
+    return Center(
+      child: Icon(
+        Icons.image_not_supported,
+        color: color,
+        size: 48,
+      ),
+    );
   }
 
   @override
@@ -120,13 +156,16 @@ class _NewArrivalsState extends State<NewArrivals>
             ],
           ),
         ),
+
         const SizedBox(height: 10),
 
-        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: _productsStream,
+        FutureBuilder<List<Product>>(
+          future: _productsFuture,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              debugPrint('Firestore error: ${snapshot.error}');
+              debugPrint(
+                'New Arrivals API error: ${snapshot.error}',
+              );
 
               return SizedBox(
                 height: 325,
@@ -150,15 +189,7 @@ class _NewArrivalsState extends State<NewArrivals>
               );
             }
 
-            final products = snapshot.data!.docs.where((doc) {
-              return doc.data()['isNewArrival'] == true;
-            }).toList()
-              ..sort((a, b) {
-                final aOrder = a.data()['sortOrder'] as num? ?? 0;
-                final bOrder = b.data()['sortOrder'] as num? ?? 0;
-
-                return aOrder.compareTo(bOrder);
-              });
+            final products = snapshot.data!;
 
             if (products.isEmpty) {
               return SizedBox(
@@ -179,21 +210,16 @@ class _NewArrivalsState extends State<NewArrivals>
               products.length,
             );
 
-            final currentDocument = products[safePage];
+            final currentProduct = products[safePage];
 
-            final currentProduct = <String, dynamic>{
-              ...currentDocument.data(),
-              // Always pass the actual Firestore document ID.
-              'id': currentDocument.id,
-            };
-
-            final imageUrl =
-                (currentProduct['imageUrl'] ?? '').toString();
+            final String imageUrl = currentProduct.primaryImageUrl ?? '';
 
             return Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                  ),
                   child: Container(
                     height: 325,
                     width: double.infinity,
@@ -208,7 +234,7 @@ class _NewArrivalsState extends State<NewArrivals>
                           child: PageView.builder(
                             controller: _pageController,
 
-                            // No itemCount: keep scrolling indefinitely.
+                            // Infinite scrolling.
                             onPageChanged: (index) {
                               if (!mounted) return;
 
@@ -216,57 +242,41 @@ class _NewArrivalsState extends State<NewArrivals>
                                 _currentPage = index;
                               });
                             },
+
                             itemBuilder: (context, index) {
-                              // Reuse the product list in both directions.
                               final productIndex = _productIndex(
                                 index,
                                 products.length,
                               );
 
-                              final document = products[productIndex];
+                              final product = products[productIndex];
 
-                              final product = <String, dynamic>{
-                                ...document.data(),
-                                'id': document.id,
-                              };
-
-                              final image =
-                                  (product['imageUrl'] ?? '').toString();
-
-                              if (image.isEmpty) {
-                                return Center(
-                                  child: Icon(
-                                    Icons.image_not_supported,
-                                    color: colors.onSurfaceVariant,
-                                    size: 48,
-                                  ),
-                                );
-                              }
+                              final String image = product.primaryImageUrl ?? '';
 
                               return GestureDetector(
                                 onTap: () => _openProduct(product),
-                                child: CachedNetworkImage(
-                                  imageUrl: image,
-                                  fit: BoxFit.cover,
-                                  alignment: Alignment.topCenter,
-                                  memCacheWidth: 800,
-                                  placeholder: (context, url) => Container(
-                                    color: colors.surface,
-                                    child: Center(
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: colors.primary,
+                                child: image.isEmpty
+                                    ? _imagePlaceholder(
+                                        colors.onSurfaceVariant,
+                                      )
+                                    : CachedNetworkImage(
+                                        imageUrl: image,
+                                        fit: BoxFit.cover,
+                                        alignment: Alignment.topCenter,
+                                        memCacheWidth: 800,
+                                        placeholder: (context, url) =>
+                                            Center(
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: colors.primary,
+                                          ),
+                                        ),
+                                        errorWidget:
+                                            (context, url, error) =>
+                                                _imagePlaceholder(
+                                          colors.onSurfaceVariant,
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  errorWidget: (context, url, error) => Center(
-                                    child: Icon(
-                                      Icons.broken_image,
-                                      color: colors.onSurfaceVariant,
-                                      size: 48,
-                                    ),
-                                  ),
-                                ),
                               );
                             },
                           ),
@@ -299,28 +309,28 @@ class _NewArrivalsState extends State<NewArrivals>
                           ),
                         ),
 
-                        // Persistent wishlist heart for the current product.
+                        // Wishlist icon for the current product.
                         Positioned(
                           top: 10,
                           right: 10,
                           child: WishlistIcon(
-                            productId: currentDocument.id,
-                            name: (currentProduct['name'] ?? 'Product')
-                                .toString(),
+                            productId:
+                                currentProduct.productId.toString(),
+                            name: currentProduct.productName,
                             price: _priceOf(currentProduct),
                             imageUrl: imageUrl,
                             description:
-                                (currentProduct['description'] ?? '')
-                                    .toString(),
+                                currentProduct.description ?? '',
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 15),
 
-                // Indicator follows the currently displayed product.
+                // Carousel page indicators.
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
@@ -345,7 +355,9 @@ class _NewArrivalsState extends State<NewArrivals>
       width: active ? 28 : 8,
       height: 8,
       decoration: BoxDecoration(
-        color: active ? colors.primary : colors.outlineVariant,
+        color: active
+            ? colors.primary
+            : colors.outlineVariant,
         borderRadius: BorderRadius.circular(20),
       ),
     );
