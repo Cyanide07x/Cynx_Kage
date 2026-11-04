@@ -1,25 +1,68 @@
 import 'dart:math' as math;
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+
+import '../models/product.dart';
+import '../services/product_service.dart';
 
 import 'wishlist_icon.dart';
 import 'product_page.dart';
 
-class Trending extends StatelessWidget {
+
+class Trending extends StatefulWidget {
   const Trending({super.key});
 
-  static final Stream<QuerySnapshot<Map<String, dynamic>>> _featuredStream =
-      FirebaseFirestore.instance
-          .collection('catalogProducts')
-          .where('isActive', isEqualTo: true)
-          .where('isFeatured', isEqualTo: true)
-          .snapshots();
+  @override
+  State<Trending> createState() => _TrendingState();
+}
+
+class _TrendingState extends State<Trending> {
+  final ProductService _productService = ProductService();
+
+  late final Future<List<Product>> _featuredFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Fetch featured products from FastAPI.
+    // Drafts are included during development.
+    _featuredFuture = _productService.fetchProducts(
+      includeDrafts: true,
+      isFeatured: true,
+    );
+  }
+
+  double _priceOf(Product product) {
+    if (product.variants.isEmpty) return 0.0;
+
+    return product.variants
+        .map((variant) => variant.price)
+        .reduce((a, b) => a < b ? a : b);
+  }
+
+  // Compatibility map for the existing ProductPage.
+  Map<String, dynamic> _productToMap(Product product) {
+    final imageUrl = product.primaryImageUrl ?? '';
+
+    return {
+      'id': product.productId.toString(),
+      'productId': product.productId.toString(),
+      'name': product.productName,
+      'slug': product.slug,
+      'description': product.description ?? '',
+      'price': _priceOf(product),
+      'imageUrl': imageUrl,
+      'galleryImages': product.images
+          .map((image) => image.imageUrl)
+          .where((url) => url.isNotEmpty)
+          .toList(),
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
-
     final colors = Theme.of(context).colorScheme;
 
     return Column(
@@ -51,28 +94,38 @@ class Trending extends StatelessWidget {
             ),
           ),
         ),
+
         const SizedBox(height: 12),
-        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: _featuredStream,
+
+        FutureBuilder<List<Product>>(
+          future: _featuredFuture,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
+              debugPrint(
+                'Trending Products API error: ${snapshot.error}',
+              );
+
               return Padding(
                 padding: const EdgeInsets.all(20),
                 child: Text(
                   'Unable to load trending products.',
-                  style: TextStyle(color: colors.onSurfaceVariant),
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
+                  ),
                 ),
               );
             }
 
-            if (snapshot.connectionState == ConnectionState.waiting) {
+            if (!snapshot.hasData) {
               return const Padding(
                 padding: EdgeInsets.all(30),
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               );
             }
 
-            final products = snapshot.data!.docs;
+            final products = snapshot.data!;
 
             if (products.isEmpty) {
               return Padding(
@@ -80,7 +133,9 @@ class Trending extends StatelessWidget {
                 child: Center(
                   child: Text(
                     'No featured products available.',
-                    style: TextStyle(color: colors.onSurfaceVariant),
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
+                    ),
                   ),
                 ),
               );
@@ -99,35 +154,25 @@ class Trending extends StatelessWidget {
                 childAspectRatio: 0.78,
               ),
               itemBuilder: (context, index) {
-                final document = products[index];
-                final product = document.data();
-                final rawPrice = product['price'];
+                final product = products[index];
 
-                final price = rawPrice is num
-                    ? rawPrice.toDouble()
-                    : double.tryParse(rawPrice?.toString() ?? '') ?? 0.0;
-
-                final imageUrl =
-                    (product['imageUrl'] ?? '').toString();
-
-                final fullProduct = <String, dynamic>{
-                  ...product,
-                  'id': document.id,
-                };
+                final price = _priceOf(product);
+                final imageUrl = product.primaryImageUrl ?? '';
 
                 return TrendingProductCard(
-                  productId: document.id,
-                  name: (product['name'] ?? 'Unnamed product').toString(),
+                  productId: product.productId.toString(),
+                  name: product.productName,
                   price: 'Rs. ${price.toStringAsFixed(0)}',
                   productPrice: price,
                   imageAsset: imageUrl,
-                  description:
-                      (product['description'] ?? '').toString(),
+                  description: product.description ?? '',
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute<void>(
-                        builder: (context) => ProductPage(product: fullProduct),
+                        builder: (context) => ProductPage(
+                          product: _productToMap(product),
+                        ),
                       ),
                     );
                   },

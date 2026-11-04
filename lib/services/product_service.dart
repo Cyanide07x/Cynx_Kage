@@ -10,8 +10,13 @@ class ProductService {
     bool includeDrafts = false,
     bool? isFeatured,
     bool? isNewArrival,
+    String? collection,
   }) async {
     final queryParameters = <String, String>{};
+
+    if (collection != null) {
+  queryParameters['collection'] = collection;
+}
 
     if (includeDrafts) {
       queryParameters['include_drafts'] = 'true';

@@ -1,39 +1,91 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// screens/home/unisex.dart
-// Product grid for the Unisex category tab on the Home screen.
-//
-// Fetches all active products from Firestore and filters to those whose
-// 'category' field equals 'unisex' (case-insensitive).
-// ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
+
 import '../../theme/appcolors.dart';
 import '../../widgets/trending.dart';
 import '../../widgets/product_page.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../models/product.dart';
+import '../../services/product_service.dart';
 
-/// Displays a 2-column product grid for unisex items only.
-class UnisexScreen extends StatelessWidget {
+class UnisexScreen extends StatefulWidget {
   const UnisexScreen({super.key});
 
-  static final Stream<QuerySnapshot<Map<String, dynamic>>> _productsStream =
-      FirebaseFirestore.instance
-          .collection('catalogProducts')
-          .where('isActive', isEqualTo: true)
-          .snapshots();
+  @override
+  State<UnisexScreen> createState() => _MenScreenState();
+}
+
+class _MenScreenState extends State<UnisexScreen> {
+  final ProductService _productService = ProductService();
+
+  late Future<List<Product>> _productsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _productsFuture = _productService.fetchProducts(
+      includeDrafts: true,
+      collection: 'unisex',
+    );
+  }
+
+  // Get the lowest available variant price.
+  double _getProductPrice(Product product) {
+    if (product.variants.isEmpty) return 0.0;
+
+    final prices = product.variants
+        .map((variant) => variant.price)
+        .toList();
+
+    prices.sort();
+
+    return prices.first.toDouble();
+  }
+
+  // Convert API product data into the legacy ProductPage map.
+  Map<String, dynamic> _productToMap(Product product) {
+    final price = _getProductPrice(product);
+
+    return {
+      'id': product.productId.toString(),
+      'name': product.productName,
+      'price': price,
+      'imageUrl': product.primaryImageUrl ?? '',
+      'description': product.description ?? '',
+      'brand': product.brand ?? '',
+      'slug': product.slug,
+      'images': product.images.map((image) {
+        return {
+          'imageUrl': image.imageUrl,
+          'altText': image.altText,
+          'isPrimary': image.isPrimary,
+        };
+      }).toList(),
+      'variants': product.variants.map((variant) {
+        return {
+          'variantId': variant.variantId,
+          'size': variant.size,
+          'color': variant.color,
+          'price': variant.price,
+          'mrp': variant.mrp,
+          'stockQuantity': variant.stockQuantity,
+        };
+      }).toList(),
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
-
     return SingleChildScrollView(
       padding: const EdgeInsets.only(top: 0, bottom: 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Section heading
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
             child: Text(
-              'Unisex Collection',
+              "unisex's Collection",
               style: TextStyle(
                 color: AppColors.text,
                 fontSize: 26,
@@ -41,11 +93,13 @@ class UnisexScreen extends StatelessWidget {
               ),
             ),
           ),
+
           const SizedBox(height: 8),
+
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
             child: Text(
-              'Explore the latest styles for everyone.',
+              'Explore the latest styles for unisex.',
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 14,
@@ -55,27 +109,42 @@ class UnisexScreen extends StatelessWidget {
 
           const SizedBox(height: 22),
 
-          StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream: _productsStream,
+          // Product grid
+          FutureBuilder<List<Product>>(
+            future: _productsFuture,
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return const Text(
-                  'Something went wrong',
-                  style: TextStyle(color: AppColors.textSecondary),
+                return const Center(
+                  child: Text(
+                    'Something went wrong while loading products.',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 );
               }
 
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
               }
 
-              // Client-side filter: include 'unisex' category only.
-              final products = snapshot.data!.docs.where((doc) {
-                final category = (doc.data()['category'] ?? '')
-                    .toString()
-                    .toLowerCase();
-                return category == 'unisex';
-              }).toList();
+              final products = snapshot.data ?? [];
+
+              if (products.isEmpty) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Text(
+                      'No products available in this collection.',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                );
+              }
 
               return GridView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -90,25 +159,18 @@ class UnisexScreen extends StatelessWidget {
                   childAspectRatio: 0.85,
                 ),
                 itemBuilder: (context, index) {
-                  final document = products[index];
-                  final product = document.data();
-                  final rawPrice = product['price'];
-                  final price = rawPrice is num
-                      ? rawPrice.toDouble()
-                      : double.tryParse(rawPrice?.toString() ?? '') ?? 0.0;
+                  final product = products[index];
 
-                  final fullProduct = <String, dynamic>{
-                    ...product,
-                    'id': document.id,
-                  };
+                  final price = _getProductPrice(product);
+                  final fullProduct = _productToMap(product);
 
                   return TrendingProductCard(
-                    productId: document.id,
-                    name: (product['name'] ?? 'Unnamed product').toString(),
+                    productId: product.productId.toString(),
+                    name: product.productName,
                     price: 'Rs. ${price.toStringAsFixed(0)}',
                     productPrice: price,
-                    imageAsset: (product['imageUrl'] ?? '').toString(),
-                    description: (product['description'] ?? '').toString(),
+                    imageAsset: product.primaryImageUrl ?? '',
+                    description: product.description ?? '',
                     onTap: () {
                       Navigator.push(
                         context,

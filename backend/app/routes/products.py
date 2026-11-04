@@ -14,7 +14,8 @@ router = APIRouter(
 def get_products(
     include_drafts: bool = Query(default=False),
     is_featured: bool | None = Query(default=None),
-    is_new_arrival: bool | None = Query(default=None)
+    is_new_arrival: bool | None = Query(default=None),
+    collection: str | None = Query(default=None)
 ):
     try:
         query = """
@@ -54,6 +55,9 @@ def get_products(
             LEFT JOIN categories c
                 ON p.category_id = c.category_id
 
+            LEFT JOIN categories audience
+                ON c.parent_id = audience.category_id
+
             LEFT JOIN product_variants pv
                 ON p.product_id = pv.product_id
 
@@ -65,13 +69,47 @@ def get_products(
 
         params = {}
 
+        # Collection filter
+        if collection is not None:
+            collection = collection.lower().strip()
+
+            collection_filters = {
+                "men": ["men", "unisex"],
+                "women": ["women", "unisex"],
+                "unisex": ["unisex"]
+            }
+
+            if collection not in collection_filters:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid collection. Use men, women or unisex."
+                )
+
+            allowed_audiences = collection_filters[collection]
+
+            placeholders = ", ".join(
+                f":audience_{i}"
+                for i in range(len(allowed_audiences))
+            )
+
+            query += f"""
+                AND LOWER(COALESCE(audience.category_name, c.category_name))
+                IN ({placeholders})
+            """
+
+            for i, audience_name in enumerate(allowed_audiences):
+                params[f"audience_{i}"] = audience_name
+
+        # Product status filter
         if not include_drafts:
             query += " AND p.status = 'active'"
 
+        # Featured products filter
         if is_featured is not None:
             query += " AND p.is_featured = :is_featured"
             params["is_featured"] = is_featured
 
+        # New arrivals filter
         if is_new_arrival is not None:
             query += " AND p.is_new_arrival = :is_new_arrival"
             params["is_new_arrival"] = is_new_arrival
@@ -117,7 +155,7 @@ def get_products(
                     "images": {}
                 }
 
-            # Add each variant only once.
+            # Add each variant only once
             if row["variant_id"] is not None:
                 variant_id = row["variant_id"]
 
@@ -132,7 +170,7 @@ def get_products(
                     "is_active": row["variant_is_active"]
                 }
 
-            # Add each image only once.
+            # Add each image only once
             if row["image_id"] is not None:
                 image_id = row["image_id"]
 
@@ -144,7 +182,7 @@ def get_products(
                     "display_order": row["display_order"]
                 }
 
-        # Convert internal dictionaries into JSON lists.
+        # Convert dictionaries into JSON lists
         product_list = []
 
         for product in products.values():
@@ -162,6 +200,9 @@ def get_products(
             "total": len(product_list),
             "products": product_list
         }
+
+    except HTTPException:
+        raise
 
     except Exception as e:
         print("PRODUCT API ERROR:", repr(e))
