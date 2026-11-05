@@ -11,10 +11,10 @@ class UnisexScreen extends StatefulWidget {
   const UnisexScreen({super.key});
 
   @override
-  State<UnisexScreen> createState() => _MenScreenState();
+  State<UnisexScreen> createState() => _UnisexScreenState();
 }
 
-class _MenScreenState extends State<UnisexScreen> {
+class _UnisexScreenState extends State<UnisexScreen> {
   final ProductService _productService = ProductService();
 
   late Future<List<Product>> _productsFuture;

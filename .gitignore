@@ -79,3 +79,19 @@ backend/.env
 
 # Temporary test screens
 lib/test_api.dart
+
+
+# Python backend
+venv/
+.venv/
+**/__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Python environment and secrets
+.env
+.env.*
+!.env.example
+serviceAccountKey.json
+*-service-account*.json
