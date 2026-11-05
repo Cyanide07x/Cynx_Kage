@@ -93,5 +93,6 @@ venv/
 .env
 .env.*
 !.env.example
+.vscode/settings.json
 serviceAccountKey.json
 *-service-account*.json
