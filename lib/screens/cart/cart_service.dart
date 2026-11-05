@@ -40,6 +40,11 @@ class CartService {
 
   // Load all saved cart items for the current user.
   Future<List<CartItem>> loadCart() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return [];
+    }
+
     final snapshot = await _cartCollection.get();
 
     return snapshot.docs.map((doc) {

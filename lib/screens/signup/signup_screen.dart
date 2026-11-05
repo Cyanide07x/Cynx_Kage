@@ -1,7 +1,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../services/auth_service.dart';
+import '../navigation/navigation_shell.dart';
 
 /// Stateful registration screen with name, email, and password fields.
 class SignUpScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final AuthService authService = AuthService();
 
   bool isAgreed = false;
   bool isLoading = false;
@@ -31,77 +33,60 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   // Actions
+ 
+Future<void> signUp() async {
+  final name = nameController.text.trim();
+  final email = emailController.text.trim();
+  final password = passwordController.text;
 
-  Future<void> signUp() async {
-    final name = nameController.text.trim();
-    final email = emailController.text.trim();
-    final password = passwordController.text;
+  if (name.isEmpty || email.isEmpty || password.isEmpty) {
+    showMessage('Please fill in all fields.');
+    return;
+  }
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty) {
-      showMessage('Please fill in all fields.');
-      return;
-    }
+  if (!isAgreed) {
+    showMessage('Please agree to the Terms and Conditions.');
+    return;
+  }
 
-    if (!isAgreed) {
-      showMessage('Please agree to the Terms and Conditions.');
-      return;
-    }
+  if (password.length < 8) {
+    showMessage('Password must be at least 8 characters.');
+    return;
+  }
 
-    if (password.length < 6) {
-      showMessage('Password must be at least 6 characters.');
-      return;
-    }
+  setState(() => isLoading = true);
 
-    setState(() => isLoading = true);
+  try {
+    await authService.register(
+      fullName: name,
+      email: email,
+      password: password,
+    );
 
-    try {
-      final credential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    if (!mounted) return;
 
-      await credential.user?.updateDisplayName(name);
+    showMessage('Account created successfully!');
 
-      if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const NavigationShell(),
+      ),
+      (route) => false,
+    );
+  } catch (e) {
+    if (!mounted) return;
 
-      showMessage('Account created successfully!');
-      Navigator.pop(context);
-    } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-
-      String message;
-      switch (e.code) {
-        case 'email-already-in-use':
-          message = 'This email is already registered. Please log in.';
-          break;
-        case 'invalid-email':
-          message = 'Please enter a valid email address.';
-          break;
-        case 'weak-password':
-          message = 'Choose a stronger password.';
-          break;
-        case 'operation-not-allowed':
-          message = 'Email/password sign-up is not enabled in Firebase.';
-          break;
-        case 'network-request-failed':
-          message = 'Network error. Check your internet connection.';
-          break;
-        default:
-          message = e.message ?? 'Unable to create your account.';
-      }
-
-      showMessage(message);
-    } catch (e) {
-      if (mounted) {
-        showMessage('Something went wrong. Please try again.');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
+    final message = e.toString().replaceFirst('Exception: ', '');
+    showMessage(message);
+  } finally {
+    if (mounted) {
+      setState(() => isLoading = false);
     }
   }
+}
+
+  
 
   void showMessage(String message) {
     final colors = Theme.of(context).colorScheme;
@@ -173,7 +158,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 10),
                   inputField(
                     controller: passwordController,
-                    hint: 'At least 6 characters',
+                    hint: 'At least 8 characters',
                     isPassword: true,
                   ),
 

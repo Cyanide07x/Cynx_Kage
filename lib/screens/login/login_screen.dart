@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../services/auth_service.dart';
 
 import '../navigation/navigation_shell.dart';
 import '../signup/signup_screen.dart';
@@ -18,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   // Controllers & state
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final AuthService authService = AuthService();
 
   bool obscurePassword = true;
   bool isLoading = false;
@@ -30,68 +31,44 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   /// Validates the form and attempts a Firebase email/password sign-in.
-  Future<void> login() async {
-    final email = emailController.text.trim();
-    final password = passwordController.text;
+  
+Future<void> login() async {
+  final email = emailController.text.trim();
+  final password = passwordController.text;
 
-    if (email.isEmpty || password.isEmpty) {
-      _showMessage('Please enter your email and password.');
-      return;
-    }
+  if (email.isEmpty || password.isEmpty) {
+    _showMessage('Please enter your email and password.');
+    return;
+  }
 
-    setState(() => isLoading = true);
+  setState(() => isLoading = true);
 
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+  try {
+    await authService.login(
+      email: email,
+      password: password,
+    );
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const NavigationShell(),
-        ),
-      );
-    } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const NavigationShell(),
+      ),
+    );
+  } catch (e) {
+    if (!mounted) return;
 
-      String message;
-      switch (e.code) {
-        case 'invalid-email':
-          message = 'Please enter a valid email address.';
-          break;
-        case 'user-not-found':
-        case 'invalid-credential':
-        case 'wrong-password':
-          message = 'Incorrect email or password.';
-          break;
-        case 'user-disabled':
-          message = 'This account has been disabled.';
-          break;
-        case 'too-many-requests':
-          message = 'Too many attempts. Please try again later.';
-          break;
-        case 'network-request-failed':
-          message = 'Network error. Check your internet connection.';
-          break;
-        default:
-          message = e.message ?? 'Unable to log in. Please try again.';
-      }
-
-      _showMessage(message);
-    } catch (e) {
-      if (mounted) {
-        _showMessage('Something went wrong. Please try again.');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
+    final message = e.toString().replaceFirst('Exception: ', '');
+    _showMessage(message);
+  } finally {
+    if (mounted) {
+      setState(() => isLoading = false);
     }
   }
+}
+
 
   /// Shows a SnackBar with the given message.
   void _showMessage(String message) {

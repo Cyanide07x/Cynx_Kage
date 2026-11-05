@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,11 +6,19 @@ import 'firebase_options.dart';
 import 'screens/splash/splash_screen.dart';
 import 'screens/login/login_screen.dart';
 import 'screens/navigation/navigation_shell.dart';
+import 'services/auth_service.dart';
 import 'theme/theme_controller.dart';
 
 final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
 
 Future<bool> checkLoginStatus() async {
+  try {
+    final token = await AuthService().getAccessToken();
+    if (token != null && token.isNotEmpty) {
+      return true;
+    }
+  } catch (_) {}
+
   return FirebaseAuth.instance.currentUser != null;
 }
 

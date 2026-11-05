@@ -18,12 +18,16 @@ class CartController extends ChangeNotifier {
 
   /// Loads the signed-in user's cart from Firestore.
   Future<void> loadCart() async {
-    final savedItems = await _cartService.loadCart();
+    try {
+      final savedItems = await _cartService.loadCart();
 
-    items
-      ..clear()
-      ..addAll(savedItems);
-    notifyListeners();
+      items
+        ..clear()
+        ..addAll(savedItems);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('CartController: Failed to load cart: $e');
+    }
   }
 
   /// Adds an item or increases the quantity of an existing variation.
