@@ -1,27 +1,27 @@
-
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import os
+import secrets
 
 import jwt
 from dotenv import load_dotenv
 from pwdlib import PasswordHash
 
-import secrets
-from pwdlib import PasswordHash
-
-
-
-# Load environment variables from backend/.env
+# Load environment variables from backend/.env if present (local development)
 BASE_DIR = Path(__file__).resolve().parents[2]
-load_dotenv(BASE_DIR / ".env")
-
+env_file = BASE_DIR / ".env"
+if env_file.exists():
+    load_dotenv(env_file)
+else:
+    load_dotenv()
 
 # JWT configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 
 if not SECRET_KEY:
-    raise RuntimeError("JWT_SECRET_KEY is missing from backend/.env")
+    raise RuntimeError(
+        "JWT_SECRET_KEY is missing. Please set it in your environment variables or backend/.env."
+    )
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
@@ -88,7 +88,6 @@ def decode_access_token(token: str) -> dict:
         raise jwt.InvalidTokenError("Invalid token type")
 
     return payload
-
 
 
 def create_refresh_token() -> str:

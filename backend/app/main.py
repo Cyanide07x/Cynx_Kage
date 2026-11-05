@@ -1,5 +1,5 @@
-
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from app.database import engine
 from app.routes.products import router as products_router
@@ -11,6 +11,16 @@ app = FastAPI(
     description="Backend API for CYNX KAGE E-commerce Application",
     version="1.0.0"
 )
+
+# Enable CORS for cross-origin frontend requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(products_router)
 app.include_router(categories_router)
 app.include_router(auth_router)
@@ -29,6 +39,7 @@ def health_check():
     return {
         "status": "healthy"
     }
+
 
 @app.get("/db-health")
 def database_health():
