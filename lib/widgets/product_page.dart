@@ -1,6 +1,6 @@
+
 import 'dart:math' as math;
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -27,30 +27,24 @@ class ProductPage extends StatefulWidget {
 class _ProductPageState extends State<ProductPage>
     with SingleTickerProviderStateMixin {
   int _currentPage = 0;
+
   final GlobalKey _reviewsKey = GlobalKey();
 
-  void _scrollToReviews() {
-    final targetContext = _reviewsKey.currentContext;
-    if (targetContext != null) {
-      Scrollable.ensureVisible(
-        targetContext,
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
   String? _selectedSize;
-  late Map<String, dynamic> _productData;
+  String? _selectedColor;
+  Map<String, dynamic>? _selectedVariant;
 
+  late Map<String, dynamic> _productData;
   late final AnimationController _borderController;
   late final PageController _pageController;
+
   List<String> _images = [];
 
-  String get _productId {
-    final product = _productData;
+  // PRODUCT DATA
 
-    for (final key in ['id', 'productId', 'slug']) {
-      final value = product[key];
+  String get _productId {
+    for (final key in ['product_id', 'id', 'productId', 'slug']) {
+      final value = _productData[key];
 
       if (value != null) {
         final id = value.toString().trim();
@@ -64,22 +58,109 @@ class _ProductPageState extends State<ProductPage>
     return '';
   }
 
-  double get _productPrice {
-    final value = _productData['price'];
+  int? get _selectedVariantId {
+    final id = _selectedVariant?['variant_id'];
 
+    if (id is num) return id.toInt();
+
+    return int.tryParse(id?.toString() ?? '');
+  }
+
+  double _toDouble(dynamic value) {
     if (value is num) return value.toDouble();
 
     return double.tryParse(value?.toString() ?? '') ?? 0.0;
   }
 
-  String get _productName =>
-      (_productData['name'] ?? 'Product').toString();
+  double get _productPrice {
+    if (_selectedVariant != null) {
+      return _toDouble(_selectedVariant!['price']);
+    }
 
-  String get _productImage =>
-      (_productData['imageUrl'] ?? '').toString();
+    final price = _productData['price'];
 
-  String get _productDescription =>
-      (_productData['description'] ?? '').toString();
+    if (price != null) return _toDouble(price);
+
+    final variants = _productData['variants'];
+
+    if (variants is List) {
+      for (final item in variants) {
+        if (item is Map) {
+          final variant = Map<String, dynamic>.from(item);
+
+          final active = variant['is_active'];
+          final isActive = active == true || active == 1;
+
+          if (isActive) {
+            return _toDouble(variant['price']);
+          }
+        }
+      }
+    }
+
+    return 0.0;
+  }
+
+  String get _productName {
+    return (_productData['product_name'] ??
+            _productData['name'] ??
+            'Product')
+        .toString();
+  }
+
+  String get _productDescription {
+    return (_productData['description'] ?? '').toString();
+  }
+
+  String get _productImage {
+    if (_images.isNotEmpty) return _images.first;
+
+    final imageUrl = _productData['imageUrl'];
+
+    if (imageUrl is String && imageUrl.isNotEmpty) {
+      return imageUrl;
+    }
+
+    return '';
+  }
+
+  // REVIEWS
+
+  void _scrollToReviews() {
+    final targetContext = _reviewsKey.currentContext;
+
+    if (targetContext != null) {
+      Scrollable.ensureVisible(
+        targetContext,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  // COLOR SELECTION
+
+  void _onColorChanged(String? color) {
+    setState(() {
+      _selectedColor = color;
+      _selectedSize = null;
+      _selectedVariant = null;
+      _currentPage = 0;
+    });
+
+    // Color-specific image switching will be added after
+    // product_images has a color mapping in MySQL.
+  }
+
+  // VARIANT SELECTION
+
+  void _onVariantChanged(Map<String, dynamic>? variant) {
+    setState(() {
+      _selectedVariant = variant;
+    });
+  }
+
+  // BUILD
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +190,6 @@ class _ProductPageState extends State<ProductPage>
 
                 const SizedBox(height: 25),
 
-                // Product information and wishlist stay together.
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -121,6 +201,8 @@ class _ProductPageState extends State<ProductPage>
                             _selectedSize = size;
                           });
                         },
+                        onColorChanged: _onColorChanged,
+                        onVariantChanged: _onVariantChanged,
                         onRatingTap: _scrollToReviews,
                       ),
                     ),
@@ -146,16 +228,12 @@ class _ProductPageState extends State<ProductPage>
 
                 const SizedBox(height: 16),
 
-                // FULL-WIDTH DESCRIPTION BOX.
-                // This is outside the Row, so it isn't constrained
-                // by the width reserved for the wishlist icon.
                 ProductDescription(
                   product: _productData,
                 ),
 
                 const SizedBox(height: 24),
 
-                // CUSTOMER REVIEWS SECTION
                 ReviewsSection(
                   key: _reviewsKey,
                 ),
@@ -180,7 +258,9 @@ class _ProductPageState extends State<ProductPage>
           icon: Icons.arrow_back,
           onTap: () => Navigator.of(context).maybePop(),
         ),
+
         const Spacer(),
+
         ListenableBuilder(
           listenable: CartController.instance,
           builder: (context, _) {
@@ -287,8 +367,10 @@ class _ProductPageState extends State<ProductPage>
                           fit: BoxFit.cover,
                           alignment: Alignment.center,
                           memCacheWidth: 1000,
-                          placeholder: (context, url) => _buildImagePlaceholder(),
-                          errorWidget: (context, url, error) => _buildImagePlaceholder(),
+                          placeholder: (context, url) =>
+                              _buildImagePlaceholder(),
+                          errorWidget: (context, url, error) =>
+                              _buildImagePlaceholder(),
                         ),
                       );
                     },
@@ -309,7 +391,7 @@ class _ProductPageState extends State<ProductPage>
     );
   }
 
-  // IMAGE PAGE INDICATORS
+  // IMAGE INDICATORS
 
   Widget _buildImageIndicators() {
     if (_images.length <= 1) {
@@ -362,12 +444,23 @@ class _ProductPageState extends State<ProductPage>
   }
 
   // ADD TO CART
+  // This still uses your existing local CartController.
+  // We will connect it to the FastAPI cart endpoint separately.
 
   Future<void> _addToCart() async {
-    if (_selectedSize == null) {
+    if (_selectedColor == null || _selectedSize == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select a size first.'),
+          content: Text('Please select a color and size first.'),
+        ),
+      );
+      return;
+    }
+
+    if (_selectedVariant == null || _selectedVariantId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a valid product variant.'),
         ),
       );
       return;
@@ -396,7 +489,7 @@ class _ProductPageState extends State<ProductPage>
           imageUrl: _productImage,
           price: _productPrice,
           size: _selectedSize!,
-          color: (_productData['color'] ?? 'Default').toString(),
+          color: _selectedColor!,
         ),
       );
 
@@ -440,41 +533,11 @@ class _ProductPageState extends State<ProductPage>
   @override
   void initState() {
     super.initState();
+
     _productData = Map<String, dynamic>.from(widget.product);
+
     _initializeControllers();
     _initializeImages();
-    _fetchFullProductIfNeeded();
-  }
-
-  Future<void> _fetchFullProductIfNeeded() async {
-    final productId = _productId;
-    if (productId.isEmpty) return;
-
-    final hasGallery = _productData['galleryImages'] != null ||
-        _productData['images'] != null ||
-        _productData['gallery'] != null;
-    final hasSizes = _productData['sizes'] != null;
-    if (hasGallery && hasSizes) return;
-
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('catalogProducts')
-          .doc(productId)
-          .get();
-      if (doc.exists && doc.data() != null && mounted) {
-        setState(() {
-          _productData = {
-            ...doc.data()!,
-            'id': doc.id,
-            ..._productData,
-            ...doc.data()!,
-          };
-          _initializeImages();
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching product details: $e');
-    }
   }
 
   void _initializeControllers() {
@@ -486,33 +549,84 @@ class _ProductPageState extends State<ProductPage>
     )..repeat();
   }
 
-  void _initializeImages() {
-    final imageUrl = _productData['imageUrl'];
-    final gallery = _productData['galleryImages'] ??
-        _productData['images'] ??
-        _productData['gallery'];
+  // Supports both the old image format (List<String>)
+  // and the FastAPI format (List<Map> with image_url).
 
+  void _initializeImages() {
     final images = <String>[];
 
-    if (imageUrl is String && imageUrl.isNotEmpty) {
-      images.add(imageUrl);
+    final directImage = _productData['imageUrl'] ??
+        _productData['image_url'];
+
+    if (directImage is String && directImage.isNotEmpty) {
+      images.add(directImage);
     }
 
+    final gallery = _productData['images'] ??
+        _productData['galleryImages'] ??
+        _productData['gallery'];
+
     if (gallery is List) {
-      for (final image in gallery) {
-        if (image is String && image.isNotEmpty) {
-          images.add(image);
+      final imageEntries = gallery
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+
+      imageEntries.sort((a, b) {
+        final aOrder = a['display_order'] is num
+            ? (a['display_order'] as num).toInt()
+            : 0;
+
+        final bOrder = b['display_order'] is num
+            ? (b['display_order'] as num).toInt()
+            : 0;
+
+        return aOrder.compareTo(bOrder);
+      });
+
+      // Put the primary image first when available.
+      imageEntries.sort((a, b) {
+        final aPrimary = a['is_primary'] == true ||
+            a['is_primary'] == 1;
+
+        final bPrimary = b['is_primary'] == true ||
+            b['is_primary'] == 1;
+
+        if (aPrimary == bPrimary) return 0;
+
+        return aPrimary ? -1 : 1;
+      });
+
+      for (final image in imageEntries) {
+        final url = image['image_url'] ?? image['imageUrl'];
+
+        if (url is String && url.isNotEmpty) {
+          images.add(url);
+        }
+      }
+
+      // Also support older APIs that return a list of strings.
+      for (final item in gallery.whereType<String>()) {
+        if (item.isNotEmpty) {
+          images.add(item);
         }
       }
     }
 
     _images = images.toSet().toList();
+
+    _currentPage = 0;
+
+    if (_pageController.hasClients) {
+      _pageController.jumpToPage(0);
+    }
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     _borderController.dispose();
+
     super.dispose();
   }
 }
@@ -533,14 +647,17 @@ class _FullScreenImageViewer extends StatefulWidget {
       _FullScreenImageViewerState();
 }
 
-class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
+class _FullScreenImageViewerState
+    extends State<_FullScreenImageViewer> {
   late final PageController _controller;
   late int _currentIndex;
 
   @override
   void initState() {
     super.initState();
+
     _currentIndex = widget.initialIndex;
+
     _controller = PageController(
       initialPage: widget.initialIndex,
     );
@@ -569,7 +686,9 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
                     imageUrl: widget.images[index],
                     fit: BoxFit.contain,
                     placeholder: (context, url) => const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                      ),
                     ),
                     errorWidget: (context, url, error) => const Icon(
                       Icons.broken_image_outlined,
@@ -581,6 +700,7 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
               );
             },
           ),
+
           Positioned(
             top: MediaQuery.of(context).padding.top + 12,
             right: 16,
@@ -594,6 +714,7 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
               ),
             ),
           ),
+
           if (widget.images.length > 1)
             Positioned(
               bottom: MediaQuery.of(context).padding.bottom + 24,
@@ -649,6 +770,7 @@ class _ProductBorderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     const strokeWidth = 2.5;
+
     final rect = Offset.zero & size;
 
     final paint = Paint()

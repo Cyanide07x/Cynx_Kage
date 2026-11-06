@@ -87,16 +87,50 @@ class _NewArrivalsState extends State<NewArrivals>
 
   // Temporary compatibility map for the existing ProductPage.
   // We will migrate ProductPage to FastAPI separately.
-  Map<String, dynamic> _productToMap(Product product) {
+  
+Map<String, dynamic> _productToMap(Product product) {
   final imageUrl = product.primaryImageUrl ?? '';
 
   return {
+    // Product information
     'id': product.productId.toString(),
     'productId': product.productId.toString(),
+    'product_id': product.productId,
     'name': product.productName,
+    'product_name': product.productName,
     'slug': product.slug,
     'description': product.description ?? '',
+    'brand': product.brand ?? '',
+    'status': product.status ?? '',
+
+    // Product pricing
     'price': _priceOf(product),
+
+    // Complete variant information
+    'variants': product.variants.map((variant) {
+      return {
+        'variant_id': variant.variantId,
+        'size': variant.size,
+        'color': variant.color,
+        'price': variant.price,
+        'mrp': variant.mrp,
+        'stock_quantity': variant.stockQuantity,
+        'is_active': true,
+      };
+    }).toList(),
+
+    // Complete image information
+    'images': product.images.map((image) {
+      return {
+        'image_id': image.imageId,
+        'image_url': image.imageUrl,
+        'alt_text': image.altText,
+        'is_primary': image.isPrimary,
+        'display_order': image.displayOrder,
+      };
+    }).toList(),
+
+    // Existing image compatibility
     'imageUrl': imageUrl,
     'galleryImages': product.images
         .map((image) => image.imageUrl)
@@ -104,6 +138,7 @@ class _NewArrivalsState extends State<NewArrivals>
         .toList(),
   };
 }
+
 
   void _openProduct(Product product) {
     Navigator.push(
