@@ -44,34 +44,7 @@ class _MenScreenState extends State<MenScreen> {
 
   // Convert API product data into the legacy ProductPage map.
   Map<String, dynamic> _productToMap(Product product) {
-    final price = _getProductPrice(product);
-
-    return {
-      'id': product.productId.toString(),
-      'name': product.productName,
-      'price': price,
-      'imageUrl': product.primaryImageUrl ?? '',
-      'description': product.description ?? '',
-      'brand': product.brand ?? '',
-      'slug': product.slug,
-      'images': product.images.map((image) {
-        return {
-          'imageUrl': image.imageUrl,
-          'altText': image.altText,
-          'isPrimary': image.isPrimary,
-        };
-      }).toList(),
-      'variants': product.variants.map((variant) {
-        return {
-          'variantId': variant.variantId,
-          'size': variant.size,
-          'color': variant.color,
-          'price': variant.price,
-          'mrp': variant.mrp,
-          'stockQuantity': variant.stockQuantity,
-        };
-      }).toList(),
-    };
+    return product.toProductPageMap();
   }
 
   @override

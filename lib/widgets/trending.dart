@@ -44,21 +44,7 @@ class _TrendingState extends State<Trending> {
 
   // Compatibility map for the existing ProductPage.
   Map<String, dynamic> _productToMap(Product product) {
-    final imageUrl = product.primaryImageUrl ?? '';
-
-    return {
-      'id': product.productId.toString(),
-      'productId': product.productId.toString(),
-      'name': product.productName,
-      'slug': product.slug,
-      'description': product.description ?? '',
-      'price': _priceOf(product),
-      'imageUrl': imageUrl,
-      'galleryImages': product.images
-          .map((image) => image.imageUrl)
-          .where((url) => url.isNotEmpty)
-          .toList(),
-    };
+    return product.toProductPageMap();
   }
 
   @override

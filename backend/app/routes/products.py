@@ -211,3 +211,113 @@ def get_products(
             status_code=500,
             detail="Could not fetch products"
         )
+
+
+@router.get("/{identifier}")
+def get_product_by_id_or_slug(identifier: str):
+    try:
+        is_id = identifier.isdigit()
+        query = """
+            SELECT
+                p.product_id,
+                p.product_name,
+                p.slug,
+                p.description,
+                p.brand,
+                p.material,
+                p.fit_type,
+                p.care_instructions,
+                p.design_category,
+                p.design_name,
+                p.status,
+                p.is_featured,
+                p.is_new_arrival,
+                c.category_name,
+
+                pv.variant_id,
+                pv.sku,
+                pv.size,
+                pv.color,
+                pv.price,
+                pv.mrp,
+                pv.stock_quantity,
+                pv.is_active AS variant_is_active,
+
+                pi.image_id,
+                pi.image_url,
+                pi.alt_text,
+                pi.is_primary,
+                pi.display_order
+
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.category_id
+            LEFT JOIN product_variants pv ON p.product_id = pv.product_id
+            LEFT JOIN product_images pi ON p.product_id = pi.product_id
+            WHERE p.product_id = :id_val OR p.slug = :slug_val
+        """
+        params = {
+            "id_val": int(identifier) if is_id else -1,
+            "slug_val": identifier
+        }
+
+        with engine.connect() as connection:
+            rows = connection.execute(text(query), params).mappings().all()
+
+        if not rows:
+            raise HTTPException(status_code=404, detail="Product not found")
+
+        product = None
+        variants = {}
+        images = {}
+
+        for row in rows:
+            if product is None:
+                product = {
+                    "product_id": row["product_id"],
+                    "product_name": row["product_name"],
+                    "slug": row["slug"],
+                    "description": row["description"],
+                    "brand": row["brand"],
+                    "material": row["material"],
+                    "fit_type": row["fit_type"],
+                    "care_instructions": row["care_instructions"],
+                    "design_category": row["design_category"],
+                    "design_name": row["design_name"],
+                    "status": row["status"],
+                    "is_featured": bool(row["is_featured"]),
+                    "is_new_arrival": bool(row["is_new_arrival"]),
+                    "category": row["category_name"],
+                }
+
+            if row["variant_id"] is not None and row["variant_id"] not in variants:
+                variants[row["variant_id"]] = {
+                    "variant_id": row["variant_id"],
+                    "sku": row["sku"],
+                    "size": row["size"],
+                    "color": row["color"],
+                    "price": float(row["price"]) if row["price"] is not None else 0.0,
+                    "mrp": float(row["mrp"]) if row["mrp"] is not None else 0.0,
+                    "stock_quantity": row["stock_quantity"],
+                    "is_active": bool(row["variant_is_active"])
+                }
+
+            if row["image_id"] is not None and row["image_id"] not in images:
+                images[row["image_id"]] = {
+                    "image_id": row["image_id"],
+                    "image_url": row["image_url"],
+                    "alt_text": row["alt_text"],
+                    "is_primary": bool(row["is_primary"]),
+                    "display_order": row["display_order"]
+                }
+
+        product["variants"] = list(variants.values())
+        product["images"] = list(images.values())
+
+        return {"product": product}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("GET PRODUCT BY ID ERROR:", repr(e))
+        raise HTTPException(status_code=500, detail="Could not fetch product")
+

@@ -36,7 +36,7 @@ class _ProductDetailsState extends State<ProductDetails> {
         .map((item) => Map<String, dynamic>.from(item))
         .where((item) {
           final active = item['is_active'];
-          return active == true || active == 1;
+          return active == null || active == true || active == 1;
         })
         .toList();
   }

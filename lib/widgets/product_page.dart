@@ -11,6 +11,7 @@ import '../screens/account/account_action_button.dart';
 import 'product_details.dart';
 import 'wishlist_icon.dart';
 import 'reviews/reviews_section.dart';
+import '../services/product_service.dart';
 
 class ProductPage extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -539,6 +540,24 @@ class _ProductPageState extends State<ProductPage>
 
     _initializeControllers();
     _initializeImages();
+
+    final rawVariants = _productData['variants'];
+    if ((rawVariants is! List || rawVariants.isEmpty) && _productId.isNotEmpty) {
+      _loadFullProductData();
+    }
+  }
+
+  Future<void> _loadFullProductData() async {
+    try {
+      final fullProduct = await ProductService().fetchProduct(_productId);
+      if (!mounted) return;
+      setState(() {
+        _productData = fullProduct.toProductPageMap();
+        _initializeImages();
+      });
+    } catch (e) {
+      debugPrint('ProductPage: Failed to load full product: $e');
+    }
   }
 
   void _initializeControllers() {
