@@ -1,5 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import '../services/coupon_service.dart';
+import '../models/coupon_model.dart';
 
 class CouponBottomSheet extends StatefulWidget {
   final double subtotal;
@@ -19,6 +20,14 @@ class CouponBottomSheet extends StatefulWidget {
 
 class _CouponBottomSheetState extends State<CouponBottomSheet> {
   final TextEditingController _manualController = TextEditingController();
+  final CouponService _couponService = CouponService();
+  late Future<List<CouponModel>> _couponsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _couponsFuture = _couponService.fetchCoupons();
+  }
 
   @override
   void dispose() {
@@ -37,7 +46,6 @@ class _CouponBottomSheetState extends State<CouponBottomSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final now = DateTime.now();
 
     return Container(
       constraints: BoxConstraints(
@@ -137,11 +145,8 @@ class _CouponBottomSheetState extends State<CouponBottomSheet> {
 
           // Live coupon list
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('coupons')
-                  .where('isActive', isEqualTo: true)
-                  .snapshots(),
+            child: FutureBuilder<List<CouponModel>>(
+              future: _couponsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -156,22 +161,7 @@ class _CouponBottomSheetState extends State<CouponBottomSheet> {
                   );
                 }
 
-                final docs = snapshot.data?.docs ?? [];
-
-                // Filter out expired & exhausted coupons
-                final validDocs = docs.where((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  final expiresAt = data['expiresAt'];
-                  if (expiresAt is Timestamp && expiresAt.toDate().isBefore(now)) {
-                    return false;
-                  }
-                  final maxUses = (data['maxUses'] as num?)?.toInt();
-                  final usedCount = (data['usedCount'] as num?)?.toInt() ?? 0;
-                  if (maxUses != null && usedCount >= maxUses) {
-                    return false;
-                  }
-                  return true;
-                }).toList();
+                final validDocs = snapshot.data ?? [];
 
                 if (validDocs.isEmpty) {
                   return Center(
@@ -189,18 +179,13 @@ class _CouponBottomSheetState extends State<CouponBottomSheet> {
                 final applicable = <Map<String, dynamic>>[];
                 final locked = <Map<String, dynamic>>[];
 
-                for (final doc in validDocs) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  final code = (data['code'] as String? ?? doc.id).toUpperCase();
-                  final discountType = data['discountType'] as String? ?? 'percentage';
-                  final discountValue =
-                      ((data['discountValue'] ?? data['discounValue']) as num?)
-                              ?.toDouble() ??
-                          0.0;
-                  final minSubtotal =
-                      (data['minSubtotal'] as num?)?.toDouble() ?? 0.0;
-                  final maxDiscount = (data['maxDiscount'] as num?)?.toDouble();
-                  final description = (data['description'] as String?)?.trim();
+                for (final coupon in validDocs) {
+                  final code = coupon.code;
+                  final discountType = coupon.discountType;
+                  final discountValue = coupon.discountValue;
+                  final minSubtotal = coupon.minSubtotal;
+                  final maxDiscount = coupon.maxDiscount;
+                  final description = coupon.description;
 
                   // Calculate estimated savings
                   double estimatedSavings = 0.0;

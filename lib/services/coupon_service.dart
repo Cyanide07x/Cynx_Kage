@@ -1,90 +1,103 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+import '../core/config/api_config.dart';
+import '../models/coupon_model.dart';
+import 'auth_service.dart';
 
 class CouponService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final AuthService _authService = AuthService();
 
+  Future<Map<String, String>> _headers({bool requireAuth = true}) async {
+    final token = await _authService.getAccessToken();
+
+    if (requireAuth && (token == null || token.isEmpty)) {
+      throw StateError('Please sign in to apply a coupon.');
+    }
+
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+
+    return headers;
+  }
+
+  dynamic _decodeResponse(http.Response response) {
+    try {
+      return jsonDecode(response.body);
+    } catch (_) {
+      throw Exception('Invalid response received from server.');
+    }
+  }
+
+  void _checkResponse(http.Response response) {
+    final data = _decodeResponse(response);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return;
+    }
+
+    if (response.statusCode == 401) {
+      throw StateError('Your session has expired. Please sign in again.');
+    }
+
+    final message = data is Map ? data['detail']?.toString() : null;
+    throw Exception(
+      message ?? 'Coupon request failed with status: ${response.statusCode}',
+    );
+  }
+
+  /// Fetch all active and available coupons from FastAPI.
+  Future<List<CouponModel>> fetchCoupons() async {
+    final headers = await _headers(requireAuth: false);
+
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/coupons/'),
+      headers: headers,
+    );
+
+    _checkResponse(response);
+    final data = _decodeResponse(response);
+
+    if (data is! Map || data['coupons'] is! List) {
+      return [];
+    }
+
+    final list = data['coupons'] as List;
+    return list
+        .map((it) => CouponModel.fromJson(Map<String, dynamic>.from(it as Map)))
+        .toList();
+  }
+
+  /// Validate a coupon code against current subtotal.
   Future<Map<String, dynamic>> validateCoupon({
     required String code,
     required double subtotal,
   }) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw Exception('Please sign in to apply a coupon.');
-    }
-
     final normalizedCode = code.trim().toUpperCase();
     if (normalizedCode.isEmpty) {
       throw Exception('Please enter a valid coupon code.');
     }
 
-    final docSnapshot =
-        await _firestore.collection('coupons').doc(normalizedCode).get();
+    final headers = await _headers(requireAuth: true);
 
-    if (!docSnapshot.exists || docSnapshot.data() == null) {
-      throw Exception('This coupon does not exist.');
-    }
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/coupons/validate/'),
+      headers: headers,
+      body: jsonEncode({
+        'code': normalizedCode,
+        'subtotal': subtotal,
+      }),
+    );
 
-    final data = docSnapshot.data()!;
+    _checkResponse(response);
+    final data = _decodeResponse(response);
 
-    final isActive = data['isActive'] == true;
-    if (!isActive) {
-      throw Exception('This coupon is inactive.');
-    }
-
-    final expiresAtRaw = data['expiresAt'];
-    if (expiresAtRaw is Timestamp) {
-      if (expiresAtRaw.toDate().isBefore(DateTime.now())) {
-        throw Exception('This coupon has expired.');
-      }
-    }
-
-    final maxUses = (data['maxUses'] as num?)?.toInt();
-    final usedCount = (data['usedCount'] as num?)?.toInt() ?? 0;
-    if (maxUses != null && usedCount >= maxUses) {
-      throw Exception('This coupon has reached its usage limit.');
-    }
-
-    final minSubtotal = (data['minSubtotal'] as num?)?.toDouble() ?? 0.0;
-    if (subtotal < minSubtotal) {
-      throw Exception(
-        'Your cart subtotal must be at least ₹${minSubtotal.toStringAsFixed(0)}.',
-      );
-    }
-
-    final discountType = data['discountType'] as String? ?? 'percentage';
-    final discountValue = ((data['discountValue'] ?? data['discounValue']) as num?)?.toDouble() ?? 0.0;
-    if (discountValue <= 0) {
-      throw Exception('This coupon has an invalid discount.');
-    }
-
-    double discount = 0.0;
-    if (discountType == 'percentage') {
-      discount = (subtotal * discountValue) / 100;
-      final maxDiscount = (data['maxDiscount'] as num?)?.toDouble();
-      if (maxDiscount != null && maxDiscount > 0 && discount > maxDiscount) {
-        discount = maxDiscount;
-      }
-    } else if (discountType == 'fixed') {
-      discount = discountValue;
-    } else {
-      throw Exception('Unsupported discount type.');
-    }
-
-    if (discount > subtotal) {
-      discount = subtotal;
-    }
-
-    discount = (discount * 100).round() / 100;
-
-    return {
-      'valid': true,
-      'code': normalizedCode,
-      'discountType': discountType,
-      'discountValue': discountValue,
-      'discountAmount': discount,
-      'finalSubtotal': subtotal - discount,
-      'message': 'Coupon applied successfully.',
-    };
+    return Map<String, dynamic>.from(data as Map);
   }
 }

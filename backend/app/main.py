@@ -9,6 +9,7 @@ from app.routes.wishlist import router as wishlist_router
 from app.routes.cart import router as cart_router
 from app.routes.addresses import router as addresses_router
 from app.routes.orders import router as orders_router
+from app.routes import coupons
 
 app = FastAPI(
     title="CYNX KAGE API",
@@ -32,6 +33,7 @@ app.include_router(wishlist_router)
 app.include_router(cart_router)
 app.include_router(addresses_router)
 app.include_router(orders_router)
+app.include_router (coupons.router)
 
 
 @app.get("/")

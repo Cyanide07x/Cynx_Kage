@@ -13,7 +13,8 @@ import 'support_screen.dart';
 import '../login/login_screen.dart';
 import 'tracker.dart';
 import 'account_action_button.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/coupon_service.dart';
+import '../../models/coupon_model.dart';
 import 'orders/my_order.dart';
 import '../navigation/navigation_shell.dart';
 import '../../services/auth_service.dart';
@@ -551,37 +552,17 @@ class _AccountScreenState extends State<AccountScreen> {
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                      stream: FirebaseFirestore.instance
-                          .collection('coupons')
-                          .where('isActive', isEqualTo: true)
-                          .snapshots(),
+                    child: FutureBuilder<List<CouponModel>>(
+                      future: CouponService().fetchCoupons(),
                       builder: (context, snapshot) {
-                        final docs = snapshot.data?.docs ?? [];
-                        final now = DateTime.now();
-
-                        final validCount = docs.where((doc) {
-                          final data = doc.data();
-                          final expiresAt = data['expiresAt'];
-                          if (expiresAt is Timestamp &&
-                              expiresAt.toDate().isBefore(now)) {
-                            return false;
-                          }
-                          final maxUses = (data['maxUses'] as num?)?.toInt();
-                          final usedCount = (data['usedCount'] as num?)?.toInt() ?? 0;
-                          if (maxUses != null && usedCount >= maxUses) {
-                            return false;
-                          }
-                          return true;
-                        }).length;
-
+                        final count = snapshot.data?.length ?? 0;
                         return InkWell(
                           borderRadius: BorderRadius.circular(18),
                           onTap: () {
                             NavigationShell.switchToTab(context, 2);
                           },
                           child: Tracker(
-                            count: validCount.toString().padLeft(2, '0'),
+                            count: count.toString().padLeft(2, '0'),
                             title: 'Coupons',
                           ),
                         );

@@ -7,7 +7,8 @@ import '../../widgets/offer_filter_button.dart';
 import '../../widgets/flash_sale_card.dart';
 import '../../widgets/coupon_card.dart';
 import '../navigation/navigation_shell.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/coupon_service.dart';
+import '../../models/coupon_model.dart';
 
 class OfferScreen extends StatefulWidget {
   const OfferScreen({super.key});
@@ -23,6 +24,8 @@ class _OfferScreenState extends State<OfferScreen> {
   Timer? _carouselTimer;
 
   final PageController _pageController = PageController();
+  final CouponService _couponService = CouponService();
+  late Future<List<CouponModel>> _couponsFuture;
 
   // Independent deadlines for each sale.
   late final DateTime streetwearSaleEnd =
@@ -59,6 +62,7 @@ class _OfferScreenState extends State<OfferScreen> {
   @override
   void initState() {
     super.initState();
+    _couponsFuture = _couponService.fetchCoupons();
 
     _carouselTimer = Timer.periodic(
       const Duration(seconds: 5),
@@ -294,11 +298,8 @@ class _OfferScreenState extends State<OfferScreen> {
   }
 
   Widget _buildCouponsSection(ColorScheme colors) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('coupons')
-          .where('isActive', isEqualTo: true)
-          .snapshots(),
+    return FutureBuilder<List<CouponModel>>(
+      future: _couponsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -321,25 +322,7 @@ class _OfferScreenState extends State<OfferScreen> {
           );
         }
 
-        final docs = snapshot.data?.docs ?? [];
-        final now = DateTime.now();
-
-        final validCoupons = docs.where((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-
-          final expiresAt = data['expiresAt'];
-          if (expiresAt is Timestamp && expiresAt.toDate().isBefore(now)) {
-            return false;
-          }
-
-          final maxUses = (data['maxUses'] as num?)?.toInt();
-          final usedCount = (data['usedCount'] as num?)?.toInt() ?? 0;
-          if (maxUses != null && usedCount >= maxUses) {
-            return false;
-          }
-
-          return true;
-        }).toList();
+        final validCoupons = snapshot.data ?? [];
 
         if (validCoupons.isEmpty) {
           return Container(
@@ -363,39 +346,13 @@ class _OfferScreenState extends State<OfferScreen> {
         }
 
         return Column(
-          children: validCoupons.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            final code = data['code'] as String? ?? doc.id;
-            final discountType = data['discountType'] as String? ?? 'percentage';
-            final discountValue =
-                ((data['discountValue'] ?? data['discounValue']) as num?)?.toDouble() ?? 0.0;
-            final minSubtotal = (data['minSubtotal'] as num?)?.toDouble() ?? 0.0;
-            final maxDiscount = (data['maxDiscount'] as num?)?.toDouble();
-
-            final discountText = discountType == 'percentage'
-                ? '${discountValue.toInt()}%'
-                : '₹${discountValue.toInt()}';
-
-            String description = (data['description'] as String?)?.trim() ?? '';
-            if (description.isEmpty) {
-              if (minSubtotal > 0 && maxDiscount != null && maxDiscount > 0) {
-                description =
-                    'On orders above ₹${minSubtotal.toInt()} (Up to ₹${maxDiscount.toInt()})';
-              } else if (minSubtotal > 0) {
-                description = 'On orders above ₹${minSubtotal.toInt()}';
-              } else if (maxDiscount != null && maxDiscount > 0) {
-                description = 'Up to ₹${maxDiscount.toInt()} off';
-              } else {
-                description = 'Valid on all orders';
-              }
-            }
-
+          children: validCoupons.map((coupon) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: CouponCard(
-                discount: discountText,
-                description: description,
-                code: code,
+                discount: coupon.discountBadgeText,
+                description: coupon.description,
+                code: coupon.code,
               ),
             );
           }).toList(),

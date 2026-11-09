@@ -218,6 +218,13 @@ def place_order(
             {"user_id": current_user.user_id}
         )
 
+        # 4. If a coupon was used, increment used_count in MySQL
+        if coupon:
+            db.execute(
+                text("UPDATE coupons SET used_count = used_count + 1 WHERE UPPER(code) = UPPER(:code)"),
+                {"code": coupon.strip()}
+            )
+
         db.commit()
 
         return {
