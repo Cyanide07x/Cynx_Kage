@@ -2,6 +2,7 @@
 import 'dart:io';
 
 import 'package:cynx_cage/screens/address/address_screen.dart';
+import '../../orders/controllers/order_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
@@ -62,6 +63,7 @@ class _AccountScreenState extends State<AccountScreen> {
   void initState() {
     super.initState();
     _loadPhotoPath();
+    OrderController.instance.loadOrders();
   }
 
   @override
@@ -507,18 +509,10 @@ class _AccountScreenState extends State<AccountScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                      stream: _auth.currentUser == null
-                          ? null
-                          : FirebaseFirestore.instance
-                              .collection('orders')
-                              .where(
-                                'userId',
-                                isEqualTo: _auth.currentUser!.uid,
-                              )
-                              .snapshots(),
-                      builder: (context, snapshot) {
-                        final count = snapshot.data?.docs.length ?? 0;
+                    child: AnimatedBuilder(
+                      animation: OrderController.instance,
+                      builder: (context, _) {
+                        final count = OrderController.instance.orderCount;
                         return InkWell(
                           borderRadius: BorderRadius.circular(18),
                           onTap: () {

@@ -6,6 +6,7 @@ import '../navigation/navigation_shell.dart';
 import '../signup/signup_screen.dart';
 import '../wishlist/wishlist_controller.dart';
 import '../cart/cart_controller.dart';
+import '../../orders/controllers/order_controller.dart';
 
 /// Stateful login screen with email and password fields.
 class LoginScreen extends StatefulWidget {
@@ -52,6 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // Refresh the wishlist and cart state for the newly logged in user
       await WishlistController.instance.initialize();
       await CartController.instance.loadCart();
+      await OrderController.instance.initialize();
 
       if (!mounted) return;
 

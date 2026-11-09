@@ -7,6 +7,7 @@ import '../screens/address/address_screen.dart';
 import '../screens/address/saved_address.dart';
 import 'payment_screen.dart';
 import '../orders/services/order_service.dart';
+import '../orders/controllers/order_controller.dart';
 import '../orders/screens/order_confirmation_screen.dart';
 import '../widgets/coupon_widget.dart';
 import '../services/coupon_service.dart';
@@ -268,8 +269,9 @@ Future<void> _placeOrder() async {
       discountAmount: _discountAmount,
     );
 
-    // Clear cart both in Firestore and locally so bag is empty after checkout
+    // Clear cart and reload orders so tracking badge and bag update immediately
     await CartController.instance.clearCart();
+    await OrderController.instance.loadOrders();
 
     if (!mounted) return;
 
