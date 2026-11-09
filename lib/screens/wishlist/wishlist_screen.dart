@@ -16,6 +16,12 @@ class _WishlistScreenState extends State<WishlistScreen> {
   final WishlistController _wishlist = WishlistController.instance;
 
   @override
+  void initState() {
+    super.initState();
+    _wishlist.initialize();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.appBackground,
@@ -112,25 +118,37 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   animation: _wishlist,
                   builder: (context, child) {
                     if (!_wishlist.isSignedIn) {
-                      return const Center(
-                        child: Text(
-                          'Please sign in to view your wishlist.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 15,
-                          ),
+                      return Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'Please sign in to view your wishlist.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed: () {
+                                _wishlist.initialize();
+                              },
+                              child: const Text('Check Login Status'),
+                            ),
+                          ],
                         ),
                       );
                     }
 
-                    if (_wishlist.isLoading) {
+                    if (_wishlist.isLoading && _wishlist.items.isEmpty) {
                       return const Center(
                         child: CircularProgressIndicator(),
                       );
                     }
 
-                    if (_wishlist.error != null) {
+                    if (_wishlist.error != null && _wishlist.items.isEmpty) {
                       return Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -144,8 +162,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                             const SizedBox(height: 12),
                             TextButton(
                               onPressed: () {
-                                // The live Firestore subscription will
-                                // retry when the stream reconnects.
+                                _wishlist.refreshWishlist();
                               },
                               child: const Text('Please try again'),
                             ),
@@ -157,31 +174,39 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     final items = _wishlist.items;
 
                     if (items.isEmpty) {
-                      return const Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.favorite_border,
-                              size: 48,
-                              color: AppColors.textSecondary,
-                            ),
-                            SizedBox(height: 12),
-                            Text(
-                              'Your wishlist is empty',
-                              style: TextStyle(
-                                color: AppColors.text,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(height: 6),
-                            Text(
-                              'Tap the heart on a product to save it.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 14,
+                      return RefreshIndicator(
+                        onRefresh: () => _wishlist.refreshWishlist(),
+                        child: ListView(
+                          children: const [
+                            SizedBox(height: 80),
+                            Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.favorite_border,
+                                    size: 48,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                  SizedBox(height: 12),
+                                  Text(
+                                    'Your wishlist is empty',
+                                    style: TextStyle(
+                                      color: AppColors.text,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(height: 6),
+                                  Text(
+                                    'Tap the heart on a product to save it.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -189,48 +214,51 @@ class _WishlistScreenState extends State<WishlistScreen> {
                       );
                     }
 
-                    return GridView.builder(
-                      padding: const EdgeInsets.only(
-                        top: 10,
-                        bottom: 20,
-                      ),
-                      itemCount: items.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 0.85,
-                      ),
-                      itemBuilder: (context, index) {
-                        final item = items[index];
+                    return RefreshIndicator(
+                      onRefresh: () => _wishlist.refreshWishlist(),
+                      child: GridView.builder(
+                        padding: const EdgeInsets.only(
+                          top: 10,
+                          bottom: 20,
+                        ),
+                        itemCount: items.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.85,
+                        ),
+                        itemBuilder: (context, index) {
+                          final item = items[index];
 
-                        return TrendingProductCard(
-                          productId: item.productId,
-                          name: item.name,
-                          price: 'Rs. ${item.price.toStringAsFixed(0)}',
-                          productPrice: item.price,
-                          imageAsset: item.imageUrl,
-                          description: item.description,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute<void>(
-                                builder: (context) => ProductPage(
-                                  product: {
-                                    'id': item.productId,
-                                    'productId': item.productId,
-                                    'name': item.name,
-                                    'price': item.price,
-                                    'imageUrl': item.imageUrl,
-                                    'description': item.description,
-                                  },
+                          return TrendingProductCard(
+                            productId: item.productId,
+                            name: item.name,
+                            price: 'Rs. ${item.price.toStringAsFixed(0)}',
+                            productPrice: item.price,
+                            imageAsset: item.imageUrl,
+                            description: item.description,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute<void>(
+                                  builder: (context) => ProductPage(
+                                    product: {
+                                      'id': item.productId,
+                                      'productId': item.productId,
+                                      'name': item.name,
+                                      'price': item.price,
+                                      'imageUrl': item.imageUrl,
+                                      'description': item.description,
+                                    },
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                        );
-                      },
+                              );
+                            },
+                          );
+                        },
+                      ),
                     );
                   },
                 ),

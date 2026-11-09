@@ -31,42 +31,49 @@ class WishlistIcon extends StatelessWidget {
       );
   }
 
-  Future<void> _toggleWishlist(BuildContext context) async {
-    final controller = WishlistController.instance;
+  
+Future<void> _toggleWishlist(BuildContext context) async {
+  final controller = WishlistController.instance;
 
-    if (!controller.isSignedIn) {
-      _showMessage(context, 'Please sign in to add items to your wishlist.');
-      return;
-    }
+  // Wait until the saved access token has been checked.
+  await controller.initialize();
 
-    final item = WishlistItem(
-      productId: productId,
-      name: name,
-      price: price,
-      description: description,
-      imageUrl: imageUrl,
-    );
+  if (!context.mounted) return;
 
-    try {
-      final added = await controller.toggleItem(item);
-
-      if (!context.mounted) return;
-
-      _showMessage(
-        context,
-        added ? 'Added to wishlist' : 'Removed from wishlist',
-      );
-    } catch (error) {
-      if (!context.mounted) return;
-
-      _showMessage(
-        context,
-        error.toString().contains('sign in')
-            ? 'Please sign in to use your wishlist.'
-            : 'Could not update your wishlist. Please try again.',
-      );
-    }
+  if (!controller.isSignedIn) {
+    _showMessage(context, 'Please sign in to add items to your wishlist.');
+    return;
   }
+
+  final item = WishlistItem(
+    productId: productId,
+    name: name,
+    price: price,
+    description: description,
+    imageUrl: imageUrl,
+  );
+
+  try {
+    final added = await controller.toggleItem(item);
+
+    if (!context.mounted) return;
+
+    _showMessage(
+      context,
+      added ? 'Added to wishlist' : 'Removed from wishlist',
+    );
+  } catch (error) {
+    if (!context.mounted) return;
+
+    _showMessage(
+      context,
+      error.toString().contains('sign in')
+          ? 'Please sign in to use your wishlist.'
+          : 'Could not update your wishlist. Please try again.',
+    );
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {

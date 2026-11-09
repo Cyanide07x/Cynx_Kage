@@ -2,9 +2,9 @@ import 'package:cynx_cage/screens/address/address_card.dart';
 import 'package:flutter/material.dart';
 import 'package:cynx_cage/theme/theme_controller.dart';
 import 'package:cynx_cage/theme/apptheme.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../services/address_service.dart';
+import '../../services/auth_service.dart';
 import 'add_address.dart';
 import 'saved_address.dart';
 
@@ -21,45 +21,97 @@ class AddressScreen extends StatefulWidget {
 }
 
 class _AddressScreenState extends State<AddressScreen> {
-  String? _selectedAddressId;
+  final AddressService _addressService = AddressService();
+  final AuthService _authService = AuthService();
+
+  List<SavedAddress> _addresses = [];
+  bool _isLoading = true;
+  bool _isSignedIn = false;
+  String? _errorMessage;
+
+  int? _selectedAddressId;
   SavedAddress? _selectedAddress;
 
-  CollectionReference<Map<String, dynamic>>? get _addresses {
-    final user = FirebaseAuth.instance.currentUser;
+  @override
+  void initState() {
+    super.initState();
+    _loadAddresses();
+  }
 
-    if (user == null) return null;
+  Future<void> _loadAddresses() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-    return FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('addresses');
+    try {
+      final token = await _authService.getAccessToken();
+      _isSignedIn = token != null && token.isNotEmpty;
+
+      if (!_isSignedIn) {
+        setState(() {
+          _addresses = [];
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final items = await _addressService.fetchAddresses();
+
+      setState(() {
+        _addresses = items;
+        _isLoading = false;
+
+        // In selection mode, auto-select the default or first address if nothing is selected yet
+        if (widget.selectionMode && _selectedAddress == null && items.isNotEmpty) {
+          final defaultAddr = items.firstWhere(
+            (a) => a.isDefault,
+            orElse: () => items.first,
+          );
+          _selectedAddress = defaultAddr;
+          _selectedAddressId = defaultAddr.addressId;
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
   }
 
   Future<void> _addAddress() async {
-    await Navigator.push<bool>(
+    final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (_) => const AddAddress(),
       ),
     );
+
+    if (result == true) {
+      _loadAddresses();
+    }
   }
 
-  Future<void> _editAddress({
-    required SavedAddress address,
-    required String documentId,
-  }) async {
-    await Navigator.push<bool>(
+  Future<void> _editAddress(SavedAddress address) async {
+    final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (_) => AddAddress(
           address: address,
-          documentId: documentId,
+          addressId: address.addressId,
         ),
       ),
     );
+
+    if (result == true) {
+      _loadAddresses();
+    }
   }
 
-  Future<void> _removeAddress(String documentId) async {
+  Future<void> _removeAddress(SavedAddress address) async {
+    if (address.addressId == null) return;
+
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
 
@@ -94,17 +146,11 @@ class _AddressScreenState extends State<AddressScreen> {
     if (confirmed != true || !mounted) return;
 
     try {
-      final addresses = _addresses;
-
-      if (addresses == null) {
-        throw Exception('Please sign in to remove an address.');
-      }
-
-      await addresses.doc(documentId).delete();
+      await _addressService.deleteAddress(address.addressId!);
 
       if (!mounted) return;
 
-      if (_selectedAddressId == documentId) {
+      if (_selectedAddressId == address.addressId) {
         setState(() {
           _selectedAddressId = null;
           _selectedAddress = null;
@@ -116,6 +162,8 @@ class _AddressScreenState extends State<AddressScreen> {
           content: Text('Address removed successfully.'),
         ),
       );
+
+      _loadAddresses();
     } catch (e) {
       if (!mounted) return;
 
@@ -127,26 +175,20 @@ class _AddressScreenState extends State<AddressScreen> {
     }
   }
 
-  void _selectAddress({
-    required SavedAddress address,
-    required String documentId,
-  }) {
+  void _selectAddress(SavedAddress address) {
     setState(() {
-      _selectedAddressId = documentId;
+      _selectedAddressId = address.addressId;
       _selectedAddress = address;
     });
   }
 
   void _confirmAddress() {
     if (_selectedAddress == null) return;
-
     Navigator.pop(context, _selectedAddress);
   }
 
   @override
   Widget build(BuildContext context) {
-    final addresses = _addresses;
-
     return AnimatedBuilder(
       animation: themeController,
       builder: (context, _) {
@@ -253,101 +295,7 @@ class _AddressScreenState extends State<AddressScreen> {
                 const SizedBox(height: 20),
 
                 Expanded(
-                  child: addresses == null
-                      ? Center(
-                          child: Text(
-                            'Please sign in to view your addresses.',
-                            style: TextStyle(
-                              color: colors.onSurfaceVariant,
-                            ),
-                          ),
-                        )
-                      : StreamBuilder<
-                          QuerySnapshot<Map<String, dynamic>>>(
-                          stream: addresses.snapshots(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasError) {
-                              return Center(
-                                child: Text(
-                                  'Could not load addresses. Please try again.',
-                                  style: TextStyle(
-                                    color: colors.onSurfaceVariant,
-                                  ),
-                                ),
-                              );
-                            }
-
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-
-                            final documents =
-                                snapshot.data?.docs ?? [];
-
-                            if (documents.isEmpty) {
-                              return Center(
-                                child: Text(
-                                  'No saved addresses yet. Add one to continue.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: colors.onSurfaceVariant,
-                                  ),
-                                ),
-                              );
-                            }
-
-                            return ListView.separated(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 4,
-                              ),
-                              itemCount: documents.length,
-                              separatorBuilder: (_, index) =>
-                                  const SizedBox(height: 16),
-                              itemBuilder: (context, index) {
-                                final document = documents[index];
-                                final data = document.data();
-
-                                final address = SavedAddress(
-                                  name: data['name'] as String? ?? '',
-                                  phone: data['phone'] as String? ?? '',
-                                  address:
-                                      data['address'] as String? ?? '',
-                                  city: data['city'] as String? ?? '',
-                                  state: data['state'] as String? ?? '',
-                                  pin: data['pin'] as String? ?? '',
-                                );
-
-                                return AddressCard(
-                                  address: address,
-                                  isDefault: false,
-                                  isSelected:
-                                      _selectedAddressId == document.id,
-                                  onSelect: () {
-                                    if (widget.selectionMode) {
-                                      _selectAddress(
-                                        address: address,
-                                        documentId: document.id,
-                                      );
-                                    }
-                                  },
-                                  onEdit: () {
-                                    _editAddress(
-                                      address: address,
-                                      documentId: document.id,
-                                    );
-                                  },
-                                  onRemove: () {
-                                    _removeAddress(document.id);
-                                  },
-                                );
-                              },
-                            );
-                          },
-                        ),
+                  child: _buildAddressList(colors),
                 ),
 
                 if (widget.selectionMode)
@@ -393,6 +341,89 @@ class _AddressScreenState extends State<AddressScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildAddressList(ColorScheme colors) {
+    if (!_isSignedIn) {
+      return Center(
+        child: Text(
+          'Please sign in to view your addresses.',
+          style: TextStyle(color: colors.onSurfaceVariant),
+        ),
+      );
+    }
+
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _errorMessage!,
+              style: TextStyle(color: colors.onSurfaceVariant),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: _loadAddresses,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_addresses.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: _loadAddresses,
+        child: ListView(
+          children: [
+            const SizedBox(height: 60),
+            Center(
+              child: Text(
+                'No saved addresses yet. Add one to continue.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadAddresses,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 4,
+        ),
+        itemCount: _addresses.length,
+        separatorBuilder: (_, index) => const SizedBox(height: 16),
+        itemBuilder: (context, index) {
+          final address = _addresses[index];
+          final isSelected = _selectedAddressId == address.addressId;
+
+          return AddressCard(
+            address: address,
+            isDefault: address.isDefault,
+            isSelected: isSelected,
+            onSelect: () {
+              if (widget.selectionMode) {
+                _selectAddress(address);
+              }
+            },
+            onEdit: () => _editAddress(address),
+            onRemove: () => _removeAddress(address),
+          );
+        },
+      ),
     );
   }
 }

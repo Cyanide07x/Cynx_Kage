@@ -1,100 +1,103 @@
 import 'dart:convert';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+
+import '../../core/config/api_config.dart';
+import '../../services/auth_service.dart';
 import 'cart_item.dart';
 
 class CartService {
-  CartService({
-    FirebaseFirestore? firestore,
-    FirebaseAuth? auth,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+  final AuthService _authService = AuthService();
 
-  final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth;
+  Future<Map<String, String>> _headers() async {
+    final token = await _authService.getAccessToken();
 
-  // Each signed-in user has their own cart.
-  CollectionReference<Map<String, dynamic>> get _cartCollection {
-    final user = _auth.currentUser;
-
-    if (user == null) {
+    if (token == null || token.isEmpty) {
       throw StateError('Please sign in to access your cart.');
     }
 
-    return _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('cart');
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
   }
 
-  // The same product, size, and color always map to the same document.
-  String _documentId(CartItem item) {
-    final key = jsonEncode([
-      item.productId,
-      item.size,
-      item.color,
-    ]);
-
-    return base64Url.encode(utf8.encode(key)).replaceAll('=', '');
+  dynamic _decodeResponse(http.Response response) {
+    try {
+      return jsonDecode(response.body);
+    } catch (_) {
+      throw Exception('Invalid response received from server.');
+    }
   }
 
-  // Load all saved cart items for the current user.
+  void _checkResponse(http.Response response) {
+    final data = _decodeResponse(response);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return;
+    }
+
+    if (response.statusCode == 401) {
+      throw StateError('Your session has expired. Please sign in again.');
+    }
+
+    final message = data is Map ? data['detail']?.toString() : null;
+    throw Exception(
+      message ?? 'Cart request failed: ${response.statusCode}',
+    );
+  }
+
+  /// Load all saved cart items for the signed-in user from FastAPI.
   Future<List<CartItem>> loadCart() async {
-    final user = _auth.currentUser;
-    if (user == null) {
+    final token = await _authService.getAccessToken();
+    if (token == null || token.isEmpty) {
       return [];
     }
 
-    final snapshot = await _cartCollection.get();
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/cart/'),
+      headers: await _headers(),
+    );
 
-    return snapshot.docs.map((doc) {
-      final data = doc.data();
+    final data = _decodeResponse(response);
+    _checkResponse(response);
 
-      return CartItem(
-        productId: (data['productId'] ?? '').toString(),
-        name: (data['name'] ?? 'Product').toString(),
-        imageUrl: (data['imageUrl'] ?? '').toString(),
-        price: (data['price'] as num?)?.toDouble() ?? 0.0,
-        size: (data['size'] ?? '').toString(),
-        color: (data['color'] ?? 'Default').toString(),
-        quantity: (data['quantity'] as num?)?.toInt() ?? 1,
-      );
+    if (data is! Map || data['items'] is! List) {
+      throw Exception('Invalid cart response.');
+    }
+
+    return (data['items'] as List).map((item) {
+      return CartItem.fromJson(Map<String, dynamic>.from(item));
     }).toList();
   }
 
-  // Add an item or increase the quantity of an existing variation.
-  Future<void> addItem(CartItem item) async {
-    final doc = _cartCollection.doc(_documentId(item));
+  /// Add an item or increase the quantity of an existing variant.
+  /// Returns the server's updated CartItem (with assigned `cartItemId`).
+  Future<CartItem> addItem(CartItem item) async {
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/cart/'),
+      headers: await _headers(),
+      body: jsonEncode({
+        if (item.variantId != null) 'variant_id': item.variantId,
+        if (int.tryParse(item.productId) != null)
+          'product_id': int.tryParse(item.productId),
+        'size': item.size,
+        'color': item.color,
+        'quantity': item.quantity,
+      }),
+    );
 
-    await _firestore.runTransaction((transaction) async {
-      final snapshot = await transaction.get(doc);
+    final data = _decodeResponse(response);
+    _checkResponse(response);
 
-      if (snapshot.exists) {
-        final data = snapshot.data()!;
-        final currentQuantity =
-            (data['quantity'] as num?)?.toInt() ?? 1;
+    if (data is Map && data['item'] != null) {
+      return CartItem.fromJson(Map<String, dynamic>.from(data['item']));
+    }
 
-        transaction.update(doc, {
-          'quantity': currentQuantity + item.quantity,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      } else {
-        transaction.set(doc, {
-          'productId': item.productId,
-          'name': item.name,
-          'imageUrl': item.imageUrl,
-          'price': item.price,
-          'size': item.size,
-          'color': item.color,
-          'quantity': item.quantity,
-          'createdAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      }
-    });
+    return item;
   }
 
-  // Set an item's quantity.
+  /// Update an item's quantity in FastAPI.
   Future<void> updateQuantity(
     CartItem item,
     int quantity,
@@ -103,34 +106,65 @@ class CartService {
       throw ArgumentError('Quantity must be at least 1.');
     }
 
-    await _cartCollection.doc(_documentId(item)).update({
-      'quantity': quantity,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-  }
-
-  // Remove a specific product variation.
-  Future<void> removeItem(CartItem item) async {
-    await _cartCollection.doc(_documentId(item)).delete();
-  }
-
-  // Clear the current user's cart.
-  Future<void> clearCart() async {
-    final collection = _cartCollection;
-    final snapshot = await collection.get();
-
-    // Firestore batches support at most 500 writes.
-    for (var start = 0; start < snapshot.docs.length; start += 500) {
-      final batch = _firestore.batch();
-      final end = (start + 500 < snapshot.docs.length)
-          ? start + 500
-          : snapshot.docs.length;
-
-      for (final doc in snapshot.docs.sublist(start, end)) {
-        batch.delete(doc.reference);
+    if (item.cartItemId == null) {
+      // If we don't have a cartItemId yet, reload the cart first
+      final freshItems = await loadCart();
+      final matched = freshItems.cast<CartItem?>().firstWhere(
+            (c) =>
+                c != null &&
+                (c.variantId != null && c.variantId == item.variantId ||
+                    (c.productId == item.productId &&
+                        c.size == item.size &&
+                        c.color == item.color)),
+            orElse: () => null,
+          );
+      if (matched?.cartItemId == null) {
+        throw StateError('Cart item ID not found.');
       }
-
-      await batch.commit();
+      return updateQuantity(matched!, quantity);
     }
+
+    final response = await http.put(
+      Uri.parse('${ApiConfig.baseUrl}/cart/${item.cartItemId}'),
+      headers: await _headers(),
+      body: jsonEncode({'quantity': quantity}),
+    );
+
+    _checkResponse(response);
+  }
+
+  /// Remove an item from the cart.
+  Future<void> removeItem(CartItem item) async {
+    if (item.cartItemId == null) {
+      final freshItems = await loadCart();
+      final matched = freshItems.cast<CartItem?>().firstWhere(
+            (c) =>
+                c != null &&
+                (c.variantId != null && c.variantId == item.variantId ||
+                    (c.productId == item.productId &&
+                        c.size == item.size &&
+                        c.color == item.color)),
+            orElse: () => null,
+          );
+      if (matched?.cartItemId == null) return;
+      return removeItem(matched!);
+    }
+
+    final response = await http.delete(
+      Uri.parse('${ApiConfig.baseUrl}/cart/${item.cartItemId}'),
+      headers: await _headers(),
+    );
+
+    _checkResponse(response);
+  }
+
+  /// Clear the current user's cart.
+  Future<void> clearCart() async {
+    final response = await http.delete(
+      Uri.parse('${ApiConfig.baseUrl}/cart/clear'),
+      headers: await _headers(),
+    );
+
+    _checkResponse(response);
   }
 }

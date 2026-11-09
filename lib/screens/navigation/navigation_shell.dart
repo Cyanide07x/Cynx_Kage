@@ -15,6 +15,7 @@
 import 'package:cynx_cage/screens/cart/cart_screen.dart';
 import 'package:cynx_cage/screens/cart/cart_controller.dart';
 import 'package:cynx_cage/screens/notifications/notification_screen.dart';
+import 'package:cynx_cage/screens/wishlist/wishlist_controller.dart';
 import 'package:flutter/material.dart';
 
 import '../../theme/appcolors.dart';
@@ -63,6 +64,7 @@ class NavigationShellState extends State<NavigationShell> {
   void initState() {
     super.initState();
     CartController.instance.loadCart();
+    WishlistController.instance.initialize();
   }
 
   void setIndex(int index) {

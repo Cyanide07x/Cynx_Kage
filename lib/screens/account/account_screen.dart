@@ -15,6 +15,9 @@ import 'account_action_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'orders/my_order.dart';
 import '../navigation/navigation_shell.dart';
+import '../../services/auth_service.dart';
+import '../wishlist/wishlist_controller.dart';
+import '../cart/cart_controller.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -535,16 +538,10 @@ class _AccountScreenState extends State<AccountScreen> {
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                      stream: _auth.currentUser == null
-                          ? null
-                          : FirebaseFirestore.instance
-                              .collection('users')
-                              .doc(_auth.currentUser!.uid)
-                              .collection('wishlist')
-                              .snapshots(),
-                      builder: (context, snapshot) {
-                        final count = snapshot.data?.docs.length ?? 0;
+                    child: AnimatedBuilder(
+                      animation: WishlistController.instance,
+                      builder: (context, _) {
+                        final count = WishlistController.instance.items.length;
                         return InkWell(
                           borderRadius: BorderRadius.circular(18),
                           onTap: () {
@@ -680,6 +677,9 @@ class _AccountScreenState extends State<AccountScreen> {
                 title: 'Log out',
                 onTap: () async {
                   try {
+                    await AuthService().clearTokens();
+                    WishlistController.instance.clear();
+                    CartController.instance.clear();
                     await _auth.signOut();
 
                     if (!context.mounted) return;

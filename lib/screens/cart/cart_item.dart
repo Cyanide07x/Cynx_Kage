@@ -4,12 +4,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Represents one product line in the shopping cart.
-///
-/// A [CartItem] is uniquely identified by the combination of
-/// [productId], [size], and [color]. Two items with the same product but
-/// different sizes or colours are treated as separate cart entries.
 class CartItem {
-  /// Unique product identifier (Firestore document ID, slug, or name).
+  /// Unique database primary key from `cart_items` in MySQL.
+  final int? cartItemId;
+
+  /// Unique variant identifier from `product_variants` in MySQL.
+  final int? variantId;
+
+  /// Product identifier (integer ID or slug as string).
   final String productId;
 
   /// Human-readable product name displayed in the cart.
@@ -31,6 +33,8 @@ class CartItem {
   int quantity;
 
   CartItem({
+    this.cartItemId,
+    this.variantId,
     required this.productId,
     required this.name,
     required this.imageUrl,
@@ -59,10 +63,47 @@ class CartItem {
     }
   }
 
+  // ── Serialization ──────────────────────────────────────────────────
+
+  factory CartItem.fromJson(Map<String, dynamic> json) {
+    final rawPrice = json['price'];
+    final priceVal = rawPrice is num
+        ? rawPrice.toDouble()
+        : double.tryParse(rawPrice?.toString() ?? '') ?? 0.0;
+
+    return CartItem(
+      cartItemId: json['cart_item_id'] as int?,
+      variantId: json['variant_id'] as int?,
+      productId: (json['product_id'] ?? json['productId'] ?? '').toString(),
+      name: (json['name'] ?? json['product_name'] ?? 'Product').toString(),
+      imageUrl: (json['imageUrl'] ?? json['image_url'] ?? '').toString(),
+      price: priceVal,
+      size: (json['size'] ?? '').toString(),
+      color: (json['color'] ?? 'Default').toString(),
+      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      if (cartItemId != null) 'cart_item_id': cartItemId,
+      if (variantId != null) 'variant_id': variantId,
+      'productId': productId,
+      'name': name,
+      'imageUrl': imageUrl,
+      'price': price,
+      'size': size,
+      'color': color,
+      'quantity': quantity,
+    };
+  }
+
   // ── Copy helper ─────────────────────────────────────────────────
 
   /// Returns a new [CartItem] with the specified fields replaced.
   CartItem copyWith({
+    int? cartItemId,
+    int? variantId,
     String? productId,
     String? name,
     String? imageUrl,
@@ -72,6 +113,8 @@ class CartItem {
     int? quantity,
   }) {
     return CartItem(
+      cartItemId: cartItemId ?? this.cartItemId,
+      variantId: variantId ?? this.variantId,
       productId: productId ?? this.productId,
       name: name ?? this.name,
       imageUrl: imageUrl ?? this.imageUrl,

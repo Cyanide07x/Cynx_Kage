@@ -1,10 +1,11 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import '../../services/auth_service.dart';
 
 import '../navigation/navigation_shell.dart';
 import '../signup/signup_screen.dart';
+import '../wishlist/wishlist_controller.dart';
+import '../cart/cart_controller.dart';
 
 /// Stateful login screen with email and password fields.
 class LoginScreen extends StatefulWidget {
@@ -30,45 +31,47 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  /// Validates the form and attempts a Firebase email/password sign-in.
-  
-Future<void> login() async {
-  final email = emailController.text.trim();
-  final password = passwordController.text;
+  /// Validates the form and attempts a sign-in.
+  Future<void> login() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text;
 
-  if (email.isEmpty || password.isEmpty) {
-    _showMessage('Please enter your email and password.');
-    return;
-  }
+    if (email.isEmpty || password.isEmpty) {
+      _showMessage('Please enter your email and password.');
+      return;
+    }
 
-  setState(() => isLoading = true);
+    setState(() => isLoading = true);
 
-  try {
-    await authService.login(
-      email: email,
-      password: password,
-    );
+    try {
+      await authService.login(
+        email: email,
+        password: password,
+      );
 
-    if (!mounted) return;
+      // Refresh the wishlist and cart state for the newly logged in user
+      await WishlistController.instance.initialize();
+      await CartController.instance.loadCart();
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const NavigationShell(),
-      ),
-    );
-  } catch (e) {
-    if (!mounted) return;
+      if (!mounted) return;
 
-    final message = e.toString().replaceFirst('Exception: ', '');
-    _showMessage(message);
-  } finally {
-    if (mounted) {
-      setState(() => isLoading = false);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const NavigationShell(),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      final message = e.toString().replaceFirst('Exception: ', '');
+      _showMessage(message);
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
-}
-
 
   /// Shows a SnackBar with the given message.
   void _showMessage(String message) {

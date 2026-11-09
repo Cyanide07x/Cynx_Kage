@@ -1,74 +1,115 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
 
+import 'package:http/http.dart' as http;
+
+import '../../core/config/api_config.dart';
+import '../../services/auth_service.dart';
 import 'wishlist_item.dart';
 
 class WishlistService {
-  final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth;
+  final AuthService _authService = AuthService();
 
-  WishlistService({
-    FirebaseFirestore? firestore,
-    FirebaseAuth? auth,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+  Future<Map<String, String>> _headers() async {
+    final token = await _authService.getAccessToken();
 
-  CollectionReference<Map<String, dynamic>> _wishlistCollection(
-    String uid,
-  ) {
-    return _firestore
-        .collection('users')
-        .doc(uid)
-        .collection('wishlist');
-  }
-
-  String _requireUserId() {
-    final user = _auth.currentUser;
-
-    if (user == null) {
+    if (token == null || token.isEmpty) {
       throw StateError('Please sign in to use your wishlist.');
     }
 
-    return user.uid;
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
   }
 
-  Stream<List<WishlistItem>> watchWishlist() {
-    final uid = _requireUserId();
-
-    return _wishlistCollection(uid)
-        .orderBy('addedAt', descending: true)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return WishlistItem.fromMap(doc.id, doc.data());
-      }).toList();
-    });
+  dynamic _decodeResponse(http.Response response) {
+    try {
+      return jsonDecode(response.body);
+    } catch (_) {
+      throw Exception('Invalid response received from server.');
+    }
   }
 
-  Future<bool> toggleItem(WishlistItem item) async {
-    final uid = _requireUserId();
-    final reference = _wishlistCollection(uid).doc(item.productId);
+  void _checkResponse(http.Response response) {
+    final data = _decodeResponse(response);
 
-    return _firestore.runTransaction<bool>((transaction) async {
-      final snapshot = await transaction.get(reference);
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300) {
+      return;
+    }
 
-      if (snapshot.exists) {
-        transaction.delete(reference);
-        return false;
-      }
+    if (response.statusCode == 401) {
+      throw StateError(
+        'Your session has expired. Please sign in again.',
+      );
+    }
 
-      transaction.set(reference, {
-        ...item.toMap(),
-        'addedAt': FieldValue.serverTimestamp(),
-      });
+    final message = data is Map
+        ? data['detail']?.toString()
+        : null;
 
-      return true;
-    });
+    throw Exception(
+      message ?? 'Wishlist request failed: ${response.statusCode}',
+    );
   }
 
+  // Fetch wishlist from FastAPI.
+  Future<List<WishlistItem>> fetchWishlist() async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/wishlist/'),
+      headers: await _headers(),
+    );
+
+    final data = _decodeResponse(response);
+    _checkResponse(response);
+
+    if (data is! Map || data['items'] is! List) {
+      throw Exception('Invalid wishlist response.');
+    }
+
+    return (data['items'] as List).map((item) {
+      final product = Map<String, dynamic>.from(item);
+
+      return WishlistItem.fromMap(
+        product['product_id'].toString(),
+        {
+          'name': product['product_name'],
+          'price': product['price'],
+          'description': product['description'],
+          'imageUrl': product['image_url'],
+        },
+      );
+    }).toList();
+  }
+
+  // Add a product to wishlist.
+  Future<void> addItem(String productId) async {
+    final parsedId = int.tryParse(productId);
+    if (parsedId == null) {
+      throw ArgumentError('Invalid product ID: $productId');
+    }
+
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/wishlist/'),
+      headers: await _headers(),
+      body: jsonEncode({
+        'product_id': parsedId,
+      }),
+    );
+
+    _checkResponse(response);
+  }
+
+  // Remove a product from wishlist.
   Future<void> removeItem(String productId) async {
-    final uid = _requireUserId();
+    final response = await http.delete(
+      Uri.parse(
+        '${ApiConfig.baseUrl}/wishlist/$productId',
+      ),
+      headers: await _headers(),
+    );
 
-    await _wishlistCollection(uid).doc(productId).delete();
+    _checkResponse(response);
   }
 }

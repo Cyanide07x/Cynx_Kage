@@ -484,6 +484,7 @@ class _ProductPageState extends State<ProductPage>
     try {
       await CartController.instance.addItem(
         CartItem(
+          variantId: _selectedVariantId,
           productId: productId,
           name: _productName,
           imageUrl: _productImage,

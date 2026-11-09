@@ -1,20 +1,20 @@
-
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
-import 'saved_address.dart';
-import '../../theme/theme_controller.dart';
+import '../../services/address_service.dart';
 import '../../theme/apptheme.dart';
+import '../../theme/theme_controller.dart';
+import 'saved_address.dart';
 
 class AddAddress extends StatefulWidget {
   final SavedAddress? address;
   final String? documentId;
+  final int? addressId;
 
   const AddAddress({
     super.key,
     this.address,
     this.documentId,
+    this.addressId,
   });
 
   @override
@@ -29,17 +29,23 @@ class _AddressScreenState extends State<AddAddress> {
   final TextEditingController stateController = TextEditingController();
   final TextEditingController pinController = TextEditingController();
 
+  final AddressService _addressService = AddressService();
+
   bool _isSaving = false;
 
-  bool get _isEditing =>
-      widget.address != null && widget.documentId != null;
+  int? get _resolvedAddressId {
+    if (widget.addressId != null) return widget.addressId;
+    if (widget.address?.addressId != null) return widget.address!.addressId;
+    return int.tryParse(widget.documentId ?? '');
+  }
+
+  bool get _isEditing => widget.address != null || _resolvedAddressId != null;
 
   @override
   void initState() {
     super.initState();
 
     final address = widget.address;
-
     if (address != null) {
       nameController.text = address.name;
       phoneController.text = address.phone;
@@ -78,44 +84,26 @@ class _AddressScreenState extends State<AddAddress> {
       return;
     }
 
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please sign in to save your address.'),
-        ),
-      );
-      return;
-    }
-
     setState(() {
       _isSaving = true;
     });
 
     try {
-      final collection = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('addresses');
+      final addressData = SavedAddress(
+        addressId: _resolvedAddressId,
+        name: nameController.text.trim(),
+        phone: phoneController.text.trim(),
+        address: addressController.text.trim(),
+        city: cityController.text.trim(),
+        state: stateController.text.trim(),
+        pin: pin,
+        isDefault: widget.address?.isDefault ?? false,
+      );
 
-      final data = <String, dynamic>{
-        'name': nameController.text.trim(),
-        'phone': phoneController.text.trim(),
-        'address': addressController.text.trim(),
-        'city': cityController.text.trim(),
-        'state': stateController.text.trim(),
-        'pin': pin,
-        'updatedAt': FieldValue.serverTimestamp(),
-      };
-
-      if (_isEditing) {
-        await collection.doc(widget.documentId).update(data);
+      if (_isEditing && _resolvedAddressId != null) {
+        await _addressService.updateAddress(_resolvedAddressId!, addressData);
       } else {
-        await collection.add({
-          ...data,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
+        await _addressService.addAddress(addressData);
       }
 
       if (!mounted) return;
@@ -134,11 +122,10 @@ class _AddressScreenState extends State<AddAddress> {
     } catch (e) {
       if (!mounted) return;
 
+      final message = e.toString().replaceFirst('Exception: ', '');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Failed to ${_isEditing ? 'update' : 'save'} address: $e',
-          ),
+          content: Text('Failed to ${_isEditing ? 'update' : 'save'} address: $message'),
         ),
       );
     } finally {
@@ -394,4 +381,3 @@ class _AddressScreenState extends State<AddAddress> {
     );
   }
 }
-
